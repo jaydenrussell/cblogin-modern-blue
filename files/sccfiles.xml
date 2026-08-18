@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="file" version="3.0" method="upgrade" client="site">
+	<name>SCC Login Card Files</name>
+	<author>CallerFlash</author>
+	<creationDate>2026-08-18</creationDate>
+	<copyright>Copyright (C) 2026 Simcoe Curling Club</copyright>
+	<license>GNU General Public License v2 or later</license>
+	<version>1.2.0</version>
+	<description>Layout override files for mod_cblogin (sccard). Installed into templates/tpl_jdseattle/html/mod_cblogin/.</description>
+	<fileset>
+		<files target="templates/tpl_jdseattle/html/mod_cblogin">
+			<file>sccard.php</file>
+			<file>sccard_logout.php</file>
+		</files>
+	</fileset>
+</extension>

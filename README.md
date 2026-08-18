@@ -1,30 +1,33 @@
 # scc-login-card-overrides — SCC CB Login card layout override
 
-Joomla template **layout overrides** for the **Community Builder Login module**
-(`mod_cblogin`) on the Astroid `tpl_jdseattle` template. Replaces the default
-CB login / logout rendering with a styled "SCC card" layout (avatar in header,
-welcome name, login form with icons + password toggle, logout button).
-
-This is **not** an installable extension — it is a template override.
+Joomla **installable package** that drops the "sccard" layout overrides for the
+**Community Builder Login module** (`mod_cblogin`) into the Astroid
+`tpl_jdseattle` template. Replaces the default CB login / logout rendering with a
+styled "SCC card" layout (avatar in header, welcome name, login form with icons +
+password toggle, logout button).
 
 ## Install
 
-1. Copy the `html/mod_cblogin/` folder into your template:
+1. In Joomla Administration: **Extensions → Install**, upload
+   `scc-login-card-overrides.zip`.
+2. The package copies the overrides into:
    ```
    templates/tpl_jdseattle/html/mod_cblogin/sccard.php
    templates/tpl_jdseattle/html/mod_cblogin/sccard_logout.php
    ```
-2. In the CB Login module: **Advanced tab → Module Layout = "sccard"** (login)
-   and the logout state uses `sccard_logout.php`.
-3. Clear Joomla cache.
+3. In the CB Login module: **Advanced tab → Module Layout = "sccard"** (login),
+   and the logout state uses `sccard_logout.php` automatically.
+4. Clear Joomla cache.
 
-> The packaged `scc-login-card-overrides.zip` contains the `html/` folder
-> structure ready to extract into the template root.
+> The template name `tpl_jdseattle` is hardcoded in the package manifest. If you
+> switch templates, reinstall against the new template or copy the files manually.
 
 ## Files
 
 ```
-html/mod_cblogin/
+scc-login-card-overrides.xml   # package manifest (type=package)
+files/sccfiles.xml             # inner file-extension manifest (target = template html/)
+files/html/mod_cblogin/
 ├── sccard.php         # Logged-OUT state: styled login form
 └── sccard_logout.php  # Logged-IN state: avatar + welcome name + logout
 ```
@@ -38,14 +41,14 @@ html/mod_cblogin/
   that works on every page), display name via CB `typename`, last-login time,
   logout button (CSRF-tokened).
 
-## Notes
+## Security
 
-- Avatar uses a **direct DB query** to `#__comprofiler` (`user_id` keyed) because
-  Community Builder's `getField('avatar')` only renders reliably when CB's
-  fieldtype renderer is loaded (i.e. on a CB page or when a CB module is present).
-  The DB query guarantees the image loads everywhere.
-- Both files carry `defined('_JEXEC') or die;` and use `JHtml::_('form.token')`
-  on state-changing forms (CSRF protected).
+- `defined('_JEXEC') or die;` on both overrides.
+- CSRF tokens via `JHtml::_('form.token')` on login + logout forms.
+- URLs built with `JRoute::_()` / `JUri`.
+- **v1.2.0 hardening:** all admin-controlled values (`$module->title` and the
+  `$style*_cssclass` params) are escaped with `htmlspecialchars()` — eliminates
+  the admin-only XSS vectors present in earlier versions.
 
 ## Version history
 
@@ -53,6 +56,7 @@ html/mod_cblogin/
 |---------|-------|
 | 1.1.4 | sccard.php initial card layout |
 | 1.1.6 | sccard_logout.php: direct DB query for avatar (consistent path) |
+| 1.2.0 | Packaged as installable Joomla package; security hardening (escape admin-controlled output) |
 
 ## License
 
