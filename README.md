@@ -19,8 +19,12 @@ password toggle, logout button).
    and the logout state uses `sccard_logout.php` automatically.
 4. Clear Joomla cache.
 
-> The template name `tpl_jdseattle` is hardcoded in the package manifest. If you
-> switch templates, reinstall against the new template or copy the files manually.
+> **Template-scoped (modified extension):** This is a customized layout override
+> for the Community Builder Login module (`mod_cblogin`), modified for the Simcoe
+> Curling Club brand and the **`tpl_jdseattle` (Astroid) template specifically**.
+> Joomla layout overrides must live inside a template's `html/` folder, so the
+> template name is hardcoded in the package manifest. If you switch templates,
+> reinstall against the new template or copy the `html/mod_cblogin/` files manually.
 
 ## Files
 
