@@ -1,10 +1,8 @@
-# scc-login-card-overrides — SCC CB Login card layout override
+# CB Login Modern Blue — Joomla CB Login module skin
 
-Joomla **installable package** that drops the "sccard" layout overrides for the
-**Community Builder Login module** (`mod_cblogin`) into the Astroid
-`tpl_jdseattle` template. Replaces the default CB login / logout rendering with a
-styled "SCC card" layout (avatar in header, welcome name, login form with icons +
-password toggle, logout button).
+A Joomla **installable package** that skins the **Community Builder Login module**
+(`mod_cblogin`) with a modern soft-blue "sccard" layout, and themes the CB
+forgot-login page. Installs into the Astroid `tpl_jdseattle` template.
 
 ## Install
 

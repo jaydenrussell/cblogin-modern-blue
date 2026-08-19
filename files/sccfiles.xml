@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension type="file" version="3.0" method="upgrade" client="site">
-	<name>SCC Login Card Files</name>
+	<name>CB Login Modern Blue Files</name>
 	<author>jaydenrussell</author>
 	<creationDate>2026-08-18</creationDate>
 	<copyright>Copyright (C) 2026 Simcoe Curling Club</copyright>
 	<license>GNU General Public License v2 or later</license>
 	<version>1.3.3</version>
-	<description>Layout override files for mod_cblogin (sccard) + com_comprofiler lostpassword view theming. Installed into templates/tpl_jdseattle/html/.</description>
+	<description>Layout skin files for mod_cblogin (sccard) + com_comprofiler lostpassword view theming. Installed into templates/tpl_jdseattle/html/.</description>
 	<filenames>
 		<filename target="templates/tpl_jdseattle/html/mod_cblogin">sccard.php</filename>
 		<filename target="templates/tpl_jdseattle/html/mod_cblogin">sccard_logout.php</filename>
