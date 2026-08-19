@@ -5,13 +5,13 @@
 	<creationDate>2026-08-18</creationDate>
 	<copyright>Copyright (C) 2026 Simcoe Curling Club</copyright>
 	<license>GNU General Public License v2 or later</license>
-	<version>1.0.2</version>
+	<version>1.0.3</version>
 	<description>Modern Soft Blue skin for the Community Builder Login module (mod_cblogin) + forgot-login page theming. Installed into the tpl_jdseattle template. Select "Modern Soft Blue" as the module layout.</description>
 	<filenames>
-		<filename>templates/tpl_jdseattle/html/mod_cblogin/modernsoftblue.php</filename>
-		<filename>templates/tpl_jdseattle/html/mod_cblogin/modernsoftblue_logout.php</filename>
-		<filename>templates/tpl_jdseattle/html/com_comprofiler/scc-forgot-login.css</filename>
-		<filename>templates/tpl_jdseattle/html/com_comprofiler/lostpassword/default.php</filename>
+		<filename target="templates/tpl_jdseattle/html/mod_cblogin">modernsoftblue.php</filename>
+		<filename target="templates/tpl_jdseattle/html/mod_cblogin">modernsoftblue_logout.php</filename>
+		<filename target="templates/tpl_jdseattle/html/com_comprofiler">scc-forgot-login.css</filename>
+		<filename target="templates/tpl_jdseattle/html/com_comprofiler/lostpassword">default.php</filename>
 	</filenames>
 	<updateservers>
 		<server type="extension" name="CB Login Modern Blue Update" priority="1">https://raw.githubusercontent.com/jaydenrussell/cblogin-modern-blue/master/update.xml</server>
