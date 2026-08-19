@@ -2,13 +2,13 @@
 <updates>
 	<update>
 		<name>CB Login Modern Blue</name>
-		<description>Installs the "Modern Soft Blue" layout skin for the Community Builder Login module (mod_cblogin) and theming for the CB lostpassword page into the tpl_jdseattle template.</description>
-		<element>pkg_cblogin-modern-blue</element>
-		<type>package</type>
-		<version>1.0.1</version>
+		<description>Modern Soft Blue skin for the Community Builder Login module (mod_cblogin) + forgot-login page theming. Installed into the tpl_jdseattle template.</description>
+		<element>cblogin-modern-blue</element>
+		<type>file</type>
+		<version>1.0.2</version>
 		<infourl>https://github.com/jaydenrussell/cblogin-modern-blue</infourl>
 		<downloads>
-			<downloadurl type="full" format="zip" sha256="d08a972f9f941c0735042e6b6ab3e371d25eef786b34ce56a6c4d2d268466fc6">https://github.com/jaydenrussell/cblogin-modern-blue/releases/download/v1.0.1/cblogin-modern-blue.zip</downloadurl>
+			<downloadurl type="full" format="zip" sha256="39b922ce007854fa69a2c207c1e2d841f1eb573ceed3cd571acdaf692b663bd5">https://github.com/jaydenrussell/cblogin-modern-blue/releases/download/v1.0.2/cblogin-modern-blue.zip</downloadurl>
 		</downloads>
 		<tags>
 			<tag>stable</tag>
