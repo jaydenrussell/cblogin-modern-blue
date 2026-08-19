@@ -5,10 +5,10 @@
 		<description>Installs the "sccard" modern-soft-blue layout skin for the Community Builder Login module (mod_cblogin) and theming for the CB lostpassword page into the tpl_jdseattle template.</description>
 		<element>pkg_cblogin-modern-blue</element>
 		<type>package</type>
-		<version>1.3.3</version>
+		<version>1.0.0</version>
 		<infourl>https://github.com/jaydenrussell/cblogin-modern-blue</infourl>
 		<downloads>
-			<downloadurl type="full" format="zip" sha256="b205f7fbf431f39d55cc5394af8d8f8edb5824f8ee6e906f51269033ca093d73">https://github.com/jaydenrussell/cblogin-modern-blue/releases/download/v1.3.3/scc-login-card-overrides.zip</downloadurl>
+			<downloadurl type="full" format="zip" sha256="9ad198fcb642189f6169525a50f9b4a116d7081f15bfa13ced8a29c01113ff51">https://github.com/jaydenrussell/cblogin-modern-blue/releases/download/v1.0.0/cblogin-modern-blue.zip</downloadurl>
 		</downloads>
 		<tags>
 			<tag>stable</tag>
