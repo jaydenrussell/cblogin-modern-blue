@@ -4,7 +4,7 @@
 		<name>SCC Login Card Overrides</name>
 		<description>Installs the "sccard" layout overrides for the Community Builder Login module (mod_cblogin) and theming for the CB lostpassword page into the tpl_jdseattle template.</description>
 		<element>scc-login-card-overrides</element>
-		<type>package</type>
+		<type>file</type>
 		<version>1.3.2</version>
 		<infourl>https://github.com/jaydenrussell/scc-login-card-overrides</infourl>
 		<downloads>
