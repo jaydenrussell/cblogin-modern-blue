@@ -1,7 +1,7 @@
 # CB Login Modern Blue — Joomla CB Login module skin
 
 A Joomla **installable package** that skins the **Community Builder Login module**
-(`mod_cblogin`) with a modern soft-blue "sccard" layout, and themes the CB
+(`mod_cblogin`) with a modern soft-blue "Modern Soft Blue" layout, and themes the CB
 forgot-login page. Installs into the Astroid `tpl_jdseattle` template.
 
 ## Install
@@ -10,11 +10,11 @@ forgot-login page. Installs into the Astroid `tpl_jdseattle` template.
    `scc-login-card-overrides.zip`.
 2. The package copies the overrides into:
    ```
-   templates/tpl_jdseattle/html/mod_cblogin/sccard.php
-   templates/tpl_jdseattle/html/mod_cblogin/sccard_logout.php
+   templates/tpl_jdseattle/html/mod_cblogin/modernsoftblue.php
+   templates/tpl_jdseattle/html/mod_cblogin/modernsoftblue_logout.php
    ```
-3. In the CB Login module: **Advanced tab → Module Layout = "sccard"** (login),
-   and the logout state uses `sccard_logout.php` automatically.
+3. In the CB Login module: **Advanced tab → Module Layout = "Modern Soft Blue"** (login),
+   and the logout state uses `modernsoftblue_logout.php` automatically.
 4. Clear Joomla cache.
 
 > **Template-scoped (modified extension):** This is a customized layout override
@@ -27,11 +27,12 @@ forgot-login page. Installs into the Astroid `tpl_jdseattle` template.
 ## Files
 
 ```
-scc-login-card-overrides.xml   # package manifest (type=package)
-files/sccfiles.xml             # inner file-extension manifest (target = template html/)
+pkg_cblogin-modern-blue.xml   # package manifest (type=package)
+update.xml                    # GitHub-based update feed
+files/sccfiles.xml            # inner file-extension manifest (target = template html/)
 files/html/mod_cblogin/
-├── sccard.php         # Logged-OUT state: styled login form
-└── sccard_logout.php  # Logged-IN state: avatar + welcome name + logout
+├── modernsoftblue.php          # Logged-OUT state: styled login form
+└── modernsoftblue_logout.php   # Logged-IN state: avatar + welcome name + logout
 ```
 
 ## Behaviour

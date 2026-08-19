@@ -5,11 +5,11 @@
 	<creationDate>2026-08-18</creationDate>
 	<copyright>Copyright (C) 2026 Simcoe Curling Club</copyright>
 	<license>GNU General Public License v2 or later</license>
-	<version>1.0.0</version>
-	<description>Layout skin files for mod_cblogin (sccard) + com_comprofiler lostpassword view theming. Installed into templates/tpl_jdseattle/html/.</description>
+	<version>1.0.1</version>
+	<description>Layout skin files for mod_cblogin (modernsoftblue) + com_comprofiler lostpassword view theming. Installed into templates/tpl_jdseattle/html/.</description>
 	<filenames>
-		<filename target="templates/tpl_jdseattle/html/mod_cblogin">sccard.php</filename>
-		<filename target="templates/tpl_jdseattle/html/mod_cblogin">sccard_logout.php</filename>
+		<filename target="templates/tpl_jdseattle/html/mod_cblogin">modernsoftblue.php</filename>
+		<filename target="templates/tpl_jdseattle/html/mod_cblogin">modernsoftblue_logout.php</filename>
 		<filename target="templates/tpl_jdseattle/html/com_comprofiler">scc-forgot-login.css</filename>
 		<filename target="templates/tpl_jdseattle/html/com_comprofiler/lostpassword">default.php</filename>
 	</filenames>

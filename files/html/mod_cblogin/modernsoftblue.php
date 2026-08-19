@@ -1,9 +1,9 @@
 <?php
 /**
- * CB Login — SCC card layout override (logged-out / login form)
+ * CB Login — Modern Soft Blue layout override (logged-out / login form)
  * ---------------------------------------------------------------------
- * Install: templates/tpl_jdseattle/html/mod_cblogin/sccard.php
- * Select:   Module → Advanced tab → Module Layout = "sccard"
+ * Install: templates/tpl_jdseattle/html/mod_cblogin/modernsoftblue.php
+ * Select:   Module → Advanced tab → Module Layout = "Modern Soft Blue"
  */
 defined('_JEXEC') or die;
 

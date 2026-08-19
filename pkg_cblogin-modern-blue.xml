@@ -5,8 +5,8 @@
 	<creationDate>2026-08-18</creationDate>
 	<copyright>Copyright (C) 2026 Simcoe Curling Club</copyright>
 	<license>GNU General Public License v2 or later</license>
-	<version>1.0.0</version>
-	<description>Installs the "sccard" modern-soft-blue layout skin for the Community Builder Login module (mod_cblogin) and theming for the CB lostpassword page into the tpl_jdseattle template. Select "sccard" as the module layout in the CB Login module's Advanced tab.</description>
+	<version>1.0.1</version>
+	<description>Installs the "Modern Soft Blue" layout skin for the Community Builder Login module (mod_cblogin) and theming for the CB lostpassword page into the tpl_jdseattle template. Select "Modern Soft Blue" as the module layout in the CB Login module's Advanced tab.</description>
 	<files>
 		<file type="file" id="sccfiles">files/sccfiles.xml</file>
 	</files>
