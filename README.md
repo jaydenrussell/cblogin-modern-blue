@@ -41,9 +41,23 @@ files/html/mod_cblogin/
 - **Logged out:** card with username/email + password fields, remember-me
   (respects `remember_enabled`), forgot-login link, login button, sign-up link,
   password show/hide toggle.
-- **Logged in:** avatar (direct `#__comprofiler` query — the proven approach
-  that works on every page), display name via CB `typename`, last-login time,
-  logout button (CSRF-tokened).
+- **Logged in:** avatar + display name via the **Community Builder API**
+  (CB is always loaded for this module — no direct DB query needed), last-login
+  time, logout button (CSRF-tokened).
+
+## Avatar / image source
+
+This package **only runs inside the CB Login module**, so Community Builder's full
+API and fieldtype renderer are **always loaded** when this code executes. There is
+no scenario where this override runs on a page without CB present.
+
+Therefore the avatar and display name use the **Community Builder API directly**:
+- Display name: `CBuser::getInstance($id)->getField('typename', null, 'raw')`
+- Avatar: `CBuser::getInstance($id)->getField('avatar', null, 'html', 'none', 'profile')`
+
+No direct database query is needed (unlike a generic module that could render
+outside a CB context). If CB is ever absent, the `class_exists('CBuser')` guard
+safely skips avatar rendering.
 
 ## Security
 
@@ -61,6 +75,8 @@ files/html/mod_cblogin/
 | 1.1.4 | sccard.php initial card layout |
 | 1.1.6 | sccard_logout.php: direct DB query for avatar (consistent path) |
 | 1.2.0 | Packaged as installable Joomla package; security hardening (escape admin-controlled output) |
+| 1.3.0 | Added CB forgot-login page theming (com_comprofiler override) + update.xml |
+| 1.3.1 | Avatar + display name via CB API (no direct DB query — CB always loaded for this module) |
 
 ## License
 

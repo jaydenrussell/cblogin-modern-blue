@@ -1,17 +1,16 @@
 <?php
 /**
- * CB Login — SCC card layout override (logged-in / logout state) v1.1.6
+ * CB Login — SCC card layout override (logged-in / logout state) v1.3.1
  * -----------------------------------------------------------------------
  * Shows: avatar in header, "Welcome, [name]" header as hyperlink to
  * profile, last login timestamp, + logout button.
  *
- * FIX (v1.1.6): Uses direct DB query to #__comprofiler for avatar field.
- * CB's getField('avatar') returns context-dependent URLs:
- *   - /383_xxxx.png on home page (404 HTML, 200 status — broken)
- *   - /images/comprofiler/383_xxxx.webp on calendar page (real image)
- * DB query always returns raw value; we construct /images/comprofiler/{name}.png
+ * Avatar + display name use the Community Builder API (CBuser::getInstance()
+ * + getField). This override only runs inside the CB Login module, so CB's
+ * full API + fieldtype renderer are always available — no direct DB query
+ * needed.
  *
- * @version 1.1.6
+ * @version 1.3.1
  */
 defined('_JEXEC') or die;
 
@@ -39,26 +38,22 @@ if (class_exists('CBuser') && !$user->guest) {
     }
 }
 
-// --- Avatar: Direct DB query for CONSISTENT path on every page ---
-// CB's getField('avatar') returns different URLs depending on context.
-// We bypass CB's field rendering and query #__comprofiler directly.
-// The avatar column stores the raw filename (e.g., "383_68acd902af225");
-// we strip any extension and construct /images/comprofiler/{filename}.png
-// Verified: returns 200 OK, Content-Type: image/png
-$db = JFactory::getDbo();
-$db->setQuery(
-    $db->getQuery(true)
-        ->select('avatar')
-        ->from('#__comprofiler')
-        ->where('id = ' . (int) $user->id)
-);
-$dbAvatar = $db->loadResult();
-
-if ($dbAvatar && $dbAvatar !== '0' && $dbAvatar !== '') {
-    $avatarFilename = preg_replace('/\.[^.]+$/', '', $dbAvatar);
-    $avatarUrl = '/images/comprofiler/' . $avatarFilename . '.png';
+// --- Avatar: CB API (CB is always loaded for this module) ---
+// This override only runs inside the CB Login module, so Community Builder's
+// full API + fieldtype renderer are guaranteed available. We use getField()
+// directly — no direct DB query needed. 'profile' reason returns the full
+// master image; we extract the src URL.
+if (class_exists('CBuser') && !$user->guest) {
+    $cbUser = CBuser::getInstance((int) $user->id, false);
+    if ($cbUser) {
+        $avatarHtml = $cbUser->getField('avatar', null, 'html', 'none', 'profile', 0, false);
+        if ($avatarHtml && preg_match('#src="([^"]+)"#i', $avatarHtml, $m)) {
+            $avatarUrl = $m[1];
+        } elseif ($avatarHtml && preg_match("#src='([^']+)'#i", $avatarHtml, $m)) {
+            $avatarUrl = $m[1];
+        }
+    }
 }
-
 // URL normalization (J3 compatible)
 if ($avatarUrl && strpos($avatarUrl, JUri::root()) === 0) {
     $avatarUrl = '/' . ltrim(str_replace(JUri::root(), '', $avatarUrl), '/');
@@ -68,19 +63,6 @@ if ($avatarUrl && strpos($avatarUrl, JUri::root()) === 0) {
     if ($avatarHost === $currentHost || 'www.' . $currentHost === $avatarHost) {
         $avatarUrl = '/' . ltrim(parse_url($avatarUrl, PHP_URL_PATH), '/');
     }
-}
-
-// SVG initial fallback (prepared early for JS onerror)
-$initial = mb_substr($displayName ?? 'U', 0, 1, 'UTF-8');
-$svgFallback = 'data:image/svg+xml;base64,' . base64_encode(
-    '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 32 32">'
-    . '<circle cx="16" cy="16" r="16" fill="#1890d7"/>'
-    . '<text x="50%" y="58%" text-anchor="middle" fill="#ffffff" font-size="14" font-family="sans-serif">'
-    . htmlspecialchars($initial, ENT_COMPAT, 'UTF-8') . '</text></svg>'
-);
-
-if (!$avatarUrl) {
-    $avatarUrl = $svgFallback;
 }
 
 // --- Last login time ---
@@ -181,8 +163,7 @@ $logoutReturn  = $params->get('logout', 'index.php');
       <?php if ($showAvatar): ?>
         <a href="<?php echo $profileUrl; ?>">
           <img src="<?php echo $avatarUrl; ?>" alt="<?php echo htmlspecialchars($displayName); ?>"
-             class="scc-header-avatar"
-             onerror="this.onerror=null;this.src='<?php echo $svgFallback; ?>';" />
+             class="scc-header-avatar" />
         </a>
       <?php endif; ?>
     </div>
