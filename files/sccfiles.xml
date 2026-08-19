@@ -5,12 +5,16 @@
 	<creationDate>2026-08-18</creationDate>
 	<copyright>Copyright (C) 2026 Simcoe Curling Club</copyright>
 	<license>GNU General Public License v2 or later</license>
-	<version>1.2.0</version>
-	<description>Layout override files for mod_cblogin (sccard). Installed into templates/tpl_jdseattle/html/mod_cblogin/.</description>
+	<version>1.3.0</version>
+	<description>Layout override files for mod_cblogin (sccard) + com_comprofiler lostpassword view theming. Installed into templates/tpl_jdseattle/html/.</description>
 	<fileset>
 		<files target="templates/tpl_jdseattle/html/mod_cblogin">
 			<file>sccard.php</file>
 			<file>sccard_logout.php</file>
+		</files>
+		<files target="templates/tpl_jdseattle/html/com_comprofiler">
+			<file>scc-forgot-login.css</file>
+			<file>lostpassword/default.php</file>
 		</files>
 	</fileset>
 </extension>

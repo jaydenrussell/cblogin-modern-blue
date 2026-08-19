@@ -1,0 +1,9 @@
+/* SCC forgot-login page theming — CB lostpassword view
+ * Injected by the SCC Login Card package via a com_comprofiler template override.
+ * Keeps the form centered and constrained to a readable width.
+ */
+body.com-comprofiler.view-lostpassword.scc-forgot-login .cbLostPassForm {
+	max-width: 860px;
+	margin: 0 auto 2rem;
+	padding: 0 .5rem;
+}
