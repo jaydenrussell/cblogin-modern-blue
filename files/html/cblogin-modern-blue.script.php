@@ -5,12 +5,13 @@
  * Postflight:
  *  1. Warns loudly if the active front-end template is not tpl_jdseattle, because
  *     every override file this package installs is scoped to that template.
- *  2. Guarantees the update site URL is registered + enabled in #__update_sites so
- *     Joomla's native Extensions > Update finds future releases. type="file"
- *     extensions occasionally don't persist the <updateservers> registration on
- *     some hosts; this makes update detection reliable regardless.
+ *  2. Guarantees the update site is ENABLED so Joomla's native Extensions > Update
+ *     finds future releases. The site itself is registered by the manifest
+ *     <updateservers> element (canonical registrar); this script only re-enables it
+ *     on every install/update so a transient fetch timeout during "Find" cannot
+ *     leave it permanently disabled on cheap hosting.
  *
- * @version 1.2.0
+ * @version 1.2.1
  */
 defined('_JEXEC') or die;
 
@@ -23,7 +24,7 @@ class cbloginmodernblueInstallerScript
 	public function postflight($route, $adapter)
 	{
 		$this->warnIfWrongTemplate();
-		$this->ensureUpdateSite();
+		$this->ensureUpdateSiteEnabled();
 	}
 
 	/**
@@ -62,14 +63,13 @@ class cbloginmodernblueInstallerScript
 	}
 
 	/**
-	 * Make sure the GitHub update.xml is registered as an update site and enabled,
-	 * so Extensions > Update detects new releases. Idempotent: does nothing if the
-	 * site is already registered at the same URL.
+	 * Re-enable the registered update site on every install/update so a transient
+	 * fetch timeout during "Extensions > Update > Find" cannot leave it disabled.
+	 * Registration is owned by the manifest <updateservers>; this never inserts.
 	 */
-	private function ensureUpdateSite()
+	private function ensureUpdateSiteEnabled()
 	{
-		$url  = 'https://raw.githubusercontent.com/jaydenrussell/cblogin-modern-blue/master/update.xml';
-		$name = 'Community Builder Login - Modern Blue';
+		$url = 'https://raw.githubusercontent.com/jaydenrussell/cblogin-modern-blue/master/update.xml';
 
 		try
 		{
@@ -82,38 +82,8 @@ class cbloginmodernblueInstallerScript
 			$db->setQuery($check);
 			$siteId = $db->loadResult();
 
-			if (!$siteId)
+			if ($siteId)
 			{
-				$site = new \stdClass;
-				$site->name = $name;
-				$site->type = 'extension';
-				$site->location = $url;
-				$site->enabled = 1;
-				$site->last_check_timestamp = 0;
-				$site->extra_query = '';
-				$db->insertObject('#__update_sites', $site);
-				$siteId = $db->insertid();
-
-				// Link the update site to this installed extension.
-				$extQ = $db->getQuery(true)
-					->select('extension_id')
-					->from('#__extensions')
-					->where('element = ' . $db->q('cblogin-modern-blue'))
-					->where('type = ' . $db->q('file'));
-				$db->setQuery($extQ);
-				$extId = $db->loadResult();
-
-				if ($extId)
-				{
-					$link = new \stdClass;
-					$link->update_site_id = $siteId;
-					$link->extension_id = $extId;
-					$db->insertObject('#__update_sites_extensions', $link);
-				}
-			}
-			else
-			{
-				// Already registered — just make sure it is enabled.
 				$db->setQuery(
 					$db->getQuery(true)
 						->update('#__update_sites')
@@ -125,8 +95,8 @@ class cbloginmodernblueInstallerScript
 		}
 		catch (\Exception $e)
 		{
-			// Non-fatal: the manifest <updateservers> already provides a fallback registration.
-			\JLog::add('CB Login Modern Blue: could not verify update site registration — ' . $e->getMessage(), \JLog::WARNING, 'jerror');
+			// Non-fatal: the manifest <updateservers> already registered the site.
+			\JLog::add('CB Login Modern Blue: could not re-enable update site — ' . $e->getMessage(), \JLog::WARNING, 'jerror');
 		}
 	}
 }

@@ -9,7 +9,7 @@
  * getField). This override only runs inside the CB Login module, so CB's full
  * API + fieldtype renderer are always available — no direct DB query needed.
  *
- * @version 1.1.0
+ * @version 1.2.1
  */
 defined('_JEXEC') or die;
 
@@ -25,9 +25,7 @@ $lastLoginTxt  = (string) $params->get('text_last_login', 'Last login');
 // Profile / profile-edit links: build local routes with the CB Itemid so the
 // links work regardless of SEF/menu setup. NO hardcoded domain.
 $profileItemid  = (int) $params->get('profile_itemid', 0);
-$editItemid     = (int) $params->get('profile_edit_itemid', 0);
 $profileUrl     = JRoute::_('index.php?option=com_comprofiler&view=userprofile' . ($profileItemid ? '&Itemid=' . $profileItemid : ''), false);
-$editProfileUrl = JRoute::_('index.php?option=com_comprofiler&view=edit' . ($editItemid ? '&Itemid=' . $editItemid : ''), false);
 
 // --- Display name via CB typename (consistent across pages) ---
 if (class_exists('CBuser') && !$user->guest) {
