@@ -104,32 +104,39 @@ $escProfile   = htmlspecialchars($profileUrl, ENT_COMPAT, 'UTF-8');
   font-size:1.05rem;
   font-weight:700;
   letter-spacing:.2px;
+  line-height:1.25;
   color:#15324a;
-  margin:0 0 .6rem 0;
+  margin:0;
   padding:0 0 .55rem .7rem;
   border-bottom:1px solid #e6ecf0 !important;
 }
-#<?php echo $scc_id; ?> .scc-card-title::before {
-  content:"";
-  position:absolute;
-  left:0; top:.1em;
-  height:1.15em; width:4px;
-  border-radius:3px;
-  background:#1890d7;
+#<?php echo $scc_id; ?> .scc-card-title .scc-greeting {
+  font-weight:600;
+  color:#4a647a;
+}
+#<?php echo $scc_id; ?> .scc-card-title .scc-name {
+  display:block;
+  overflow-wrap:anywhere;
+  word-break:break-word;
 }
 #<?php echo $scc_id; ?> .scc-header {
   display:flex;
   align-items:center;
   justify-content:space-between;
+  gap:.75rem;
   overflow:visible;
   position:relative;
 }
+#<?php echo $scc_id; ?> .scc-header-text {
+  min-width:0;
+  flex:1 1 auto;
+}
 #<?php echo $scc_id; ?> .scc-header-avatar {
+  flex:0 0 auto;
   width:48px; height:48px;
   border-radius:50%;
   object-fit:cover;
   border:2px solid #e3ebf5;
-  margin-top:-2.5rem;
 }
 #<?php echo $scc_id; ?> .scc-header-avatar svg {
   width:48px; height:48px;
@@ -162,11 +169,13 @@ $escProfile   = htmlspecialchars($profileUrl, ENT_COMPAT, 'UTF-8');
   <section class="scc-card">
     <!-- Header: Welcome + name + avatar (both link to profile) -->
     <div class="scc-header">
-      <h3 class="scc-card-title">
-        <a href="<?php echo $escProfile; ?>" style="color:#15324a;text-decoration:none;">
-          Welcome<?php echo $displayName ? ', ' . $escName : ''; ?>
-        </a>
-      </h3>
+      <div class="scc-header-text">
+        <h3 class="scc-card-title">
+          <a href="<?php echo $escProfile; ?>" style="color:#15324a;text-decoration:none;">
+            <span class="scc-greeting">Welcome<?php echo $displayName ? ',' : ''; ?></span><span class="scc-name"><?php echo $displayName ? $escName : ''; ?></span>
+          </a>
+        </h3>
+      </div>
       <?php if ($showAvatar): ?>
         <a href="<?php echo $escProfile; ?>">
           <img src="<?php echo $escAvatar; ?>" alt="<?php echo $escName; ?>"
