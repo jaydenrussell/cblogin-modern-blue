@@ -65,25 +65,30 @@ class cbloginmodernblueInstallerScript
 	}
 
 	/**
-	 * Ensure a working update site exists and points at the current release-asset
-	 * feed. Joomla 3.10's FileAdapter does NOT register <updateservers> from a
-	 * type="file" manifest, so the install alone creates no update site. We:
-	 *   1. INSERT a site (linked to THIS extension) if none exists yet, and
-	 *   2. Rewrite any stale per-version URLs left by earlier builds, re-enabling.
+	 * Ensure a working update site exists, points at the STABLE (version-independent)
+	 * feed, and is enabled.
 	 *
-	 * Only the specific stale URLs created by earlier builds are matched (never a
-	 * broad substring), so unrelated extensions are never touched or force-enabled.
+	 * Why a stable URL: Joomla's update site location is version-pinned at install
+	 * time. If it points at ".../v1.2.9/update.xml" it can ONLY ever report 1.2.9 and
+	 * will never detect a newer release — which is exactly the "never detects" bug.
+	 * The stable feed (repo master update.xml) always declares the current latest
+	 * version, so detection works for every future release without touching the
+	 * installed site.
+	 *
+	 * Joomla 3.10's FileAdapter does NOT register <updateservers> from a type="file"
+	 * manifest, so we INSERT the site if missing and rewrite/enable it (and any
+	 * stale duplicates) here.
 	 */
 	private function repairUpdateSite()
 	{
+		// STABLE, version-independent feed. Update this file on every release.
+		$url = 'https://raw.githubusercontent.com/jaydenrussell/cblogin-modern-blue/master/update.xml';
 		$name = 'Community Builder Login - Modern Blue Update';
-		$url  = 'https://github.com/jaydenrussell/cblogin-modern-blue/releases/download/v1.3.0/update.xml';
 
 		try
 		{
 			$db = \JFactory::getDbo();
 
-			// Find this extension's ID by element + type.
 			$eid = (int) $db->setQuery(
 				$db->getQuery(true)
 					->select('extension_id')
@@ -94,9 +99,6 @@ class cbloginmodernblueInstallerScript
 
 			if (!$eid)
 			{
-				// Extension row not available yet (e.g. discover_install edge case).
-				// Make it visible instead of silently skipping — an unregistered
-				// update site here means the extension will be unupdatable.
 				\JLog::add(
 					'CB Login Modern Blue: extension row (element=cblogin-modern-blue, type=file) not found; '
 					. 'update site was NOT registered. Re-run the install or check #__extensions.',
@@ -105,6 +107,15 @@ class cbloginmodernblueInstallerScript
 				);
 				return;
 			}
+
+			// Every update-site row whose location references this package -> rewrite + enable.
+			$db->setQuery(
+				$db->getQuery(true)
+					->update('#__update_sites')
+					->set('location = ' . $db->q($url))
+					->set('enabled = 1')
+					->where('location LIKE ' . $db->q('%cblogin-modern-blue%update.xml'))
+			)->execute();
 
 			// Does a site already link to this extension?
 			$existing = (int) $db->setQuery(
@@ -118,7 +129,6 @@ class cbloginmodernblueInstallerScript
 
 			if (!$existing)
 			{
-				// INSERT a fresh update site + link row.
 				$db->setQuery(
 					$db->getQuery(true)
 						->insert('#__update_sites')
@@ -139,37 +149,6 @@ class cbloginmodernblueInstallerScript
 					)->execute();
 				}
 			}
-			else
-			{
-				// UPDATE existing linked site to the current feed + enabled.
-				$db->setQuery(
-					$db->getQuery(true)
-						->update('#__update_sites')
-						->set('location = ' . $db->q($url))
-						->set('enabled = 1')
-						->where('update_site_id = ' . $existing)
-				)->execute();
-			}
-
-			// Heal any other stale rows (orphaned from earlier builds) — targeted URLs only.
-			$stale = array(
-				'%releases/download/v1.2.1/update.xml%',
-				'%/v1.2.1/update.xml%',
-				'%/master/update.xml%',
-			);
-			$conds = array();
-			foreach ($stale as $s)
-			{
-				$conds[] = 'location LIKE ' . $db->q($s);
-			}
-
-			$db->setQuery(
-				$db->getQuery(true)
-					->update('#__update_sites')
-					->set('location = ' . $db->q($url))
-					->set('enabled = 1')
-					->where(implode(' OR ', $conds))
-			)->execute();
 		}
 		catch (\Exception $e)
 		{
