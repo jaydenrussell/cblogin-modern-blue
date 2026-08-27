@@ -1,16 +1,15 @@
 <?php
 /**
- * CB Login — SCC card layout override (logged-in / logout state) v1.3.1
- * -----------------------------------------------------------------------
- * Shows: avatar in header, "Welcome, [name]" header as hyperlink to
- * profile, last login timestamp, + logout button.
+ * CB Login — Modern Soft Blue layout override (logged-in / logout state) v1.1.0
+ * ---------------------------------------------------------------------------
+ * Shows: avatar in header, "Welcome, [name]" header as hyperlink to profile,
+ * last login timestamp, + logout button.
  *
- * Avatar + display name use the Community Builder API (CBuser::getInstance()
- * + getField). This override only runs inside the CB Login module, so CB's
- * full API + fieldtype renderer are always available — no direct DB query
- * needed.
+ * Avatar + display name use the Community Builder API (CBuser::getInstance() +
+ * getField). This override only runs inside the CB Login module, so CB's full
+ * API + fieldtype renderer are always available — no direct DB query needed.
  *
- * @version 1.3.1
+ * @version 1.1.0
  */
 defined('_JEXEC') or die;
 
@@ -21,28 +20,28 @@ $avatarUrl     = '';
 $displayName   = $user->get('name');
 $showAvatar    = $params->get('show_avatar', 1);
 $showLastLogin = $params->get('show_last_login', 1);
-$lastLoginTxt  = $params->get('text_last_login', 'Last login');
+$lastLoginTxt  = (string) $params->get('text_last_login', 'Last login');
 
-// Profile URL — SCC profile page (requires login)
-$profileUrl = $params->get('profile_url', 'https://simcoecurlingclub.ca/scc-profile');
-
-// Profile edit URL — SCC profile edit page (requires login)
-$editProfileUrl = $params->get('profile_edit_url', 'https://simcoecurlingclub.ca/scc-profile');
+// Profile / profile-edit links: build local routes with the CB Itemid so the
+// links work regardless of SEF/menu setup. NO hardcoded domain.
+$profileItemid  = (int) $params->get('profile_itemid', 0);
+$editItemid     = (int) $params->get('profile_edit_itemid', 0);
+$profileUrl     = JRoute::_('index.php?option=com_comprofiler&view=userprofile' . ($profileItemid ? '&Itemid=' . $profileItemid : ''), false);
+$editProfileUrl = JRoute::_('index.php?option=com_comprofiler&view=edit' . ($editItemid ? '&Itemid=' . $editItemid : ''), false);
 
 // --- Display name via CB typename (consistent across pages) ---
 if (class_exists('CBuser') && !$user->guest) {
     $cbUser = CBuser::getInstance((int) $user->id, false);
     if ($cbUser) {
         $cbName = $cbUser->getField('typename', null, 'raw');
-        if ($cbName) $displayName = $cbName;
+        if ($cbName) {
+            $displayName = $cbName;
+        }
     }
 }
 
 // --- Avatar: CB API (CB is always loaded for this module) ---
-// This override only runs inside the CB Login module, so Community Builder's
-// full API + fieldtype renderer are guaranteed available. We use getField()
-// directly — no direct DB query needed. 'profile' reason returns the full
-// master image; we extract the src URL.
+// 'profile' reason returns the full master image; we extract the src URL.
 if (class_exists('CBuser') && !$user->guest) {
     $cbUser = CBuser::getInstance((int) $user->id, false);
     if ($cbUser) {
@@ -54,14 +53,19 @@ if (class_exists('CBuser') && !$user->guest) {
         }
     }
 }
-// URL normalization (J3 compatible)
-if ($avatarUrl && strpos($avatarUrl, JUri::root()) === 0) {
-    $avatarUrl = '/' . ltrim(str_replace(JUri::root(), '', $avatarUrl), '/');
-} elseif ($avatarUrl && strpos($avatarUrl, 'http') === 0) {
-    $currentHost = JUri::getInstance()->getHost();
-    $avatarHost = parse_url($avatarUrl, PHP_URL_HOST);
-    if ($avatarHost === $currentHost || 'www.' . $currentHost === $avatarHost) {
-        $avatarUrl = '/' . ltrim(parse_url($avatarUrl, PHP_URL_PATH), '/');
+
+// URL normalization: keep only a root-relative path for the current host.
+// This avoids leaking to a wrong domain and keeps the markup simple/portable.
+if ($avatarUrl !== '') {
+    $abs = (strpos($avatarUrl, 'http') === 0);
+    if (!$abs && strpos($avatarUrl, '/') === 0) {
+        // already root-relative — leave as-is
+    } elseif ($abs) {
+        $host = parse_url($avatarUrl, PHP_URL_HOST);
+        if ($host && $host === JUri::getInstance()->getHost()) {
+            $avatarUrl = '/' . ltrim(parse_url($avatarUrl, PHP_URL_PATH), '/');
+        }
+        // If the host differs, leave the absolute URL (cross-domain avatar) untouched.
     }
 }
 
@@ -71,15 +75,21 @@ if ($showLastLogin) {
     $lastLogin = $user->get('lastvisitDate');
     if (!empty($lastLogin) && $lastLogin !== '0000-00-00 00:00:00') {
         $d = JFactory::getDate($lastLogin);
-        $lastLoginHtml = $d->format('M j, Y \\a\\t g:i a');
+        $lastLoginHtml = $d->format('M j, Y \a\t g:i a');
     } else {
         $lastLoginHtml = 'Never logged in';
     }
 }
 
-// --- Logout ---
-$logoutAction  = JRoute::_('index.php?option=com_comprofiler&view=logout&task=logout', false);
-$logoutReturn  = $params->get('logout', 'index.php');
+// --- Logout (route carries the return + token; CSRF-protected by CB) ---
+$logoutAction = JRoute::_('index.php?option=com_comprofiler&view=logout&task=logout', false);
+
+// Escape output once.
+$escName      = htmlspecialchars($displayName, ENT_COMPAT, 'UTF-8');
+$escAvatar    = htmlspecialchars($avatarUrl, ENT_COMPAT, 'UTF-8');
+$escLastTxt   = htmlspecialchars($lastLoginTxt, ENT_COMPAT, 'UTF-8');
+$escLastHtml  = htmlspecialchars($lastLoginHtml, ENT_COMPAT, 'UTF-8');
+$escProfile   = htmlspecialchars($profileUrl, ENT_COMPAT, 'UTF-8');
 ?>
 <style>
 #<?php echo $scc_id; ?> .scc-card {
@@ -121,7 +131,6 @@ $logoutReturn  = $params->get('logout', 'index.php');
   border-radius:50%;
   object-fit:cover;
   border:2px solid #e3ebf5;
-  /* Pull up so the avatar overlaps the title line */
   margin-top:-2.5rem;
 }
 #<?php echo $scc_id; ?> .scc-header-avatar svg {
@@ -156,13 +165,13 @@ $logoutReturn  = $params->get('logout', 'index.php');
     <!-- Header: Welcome + name + avatar (both link to profile) -->
     <div class="scc-header">
       <h3 class="scc-card-title">
-        <a href="<?php echo $profileUrl; ?>" style="color:#15324a;text-decoration:none;">
-          Welcome<?php echo $displayName ? ', ' . htmlspecialchars($displayName) : ''; ?>
+        <a href="<?php echo $escProfile; ?>" style="color:#15324a;text-decoration:none;">
+          Welcome<?php echo $displayName ? ', ' . $escName : ''; ?>
         </a>
       </h3>
       <?php if ($showAvatar): ?>
-        <a href="<?php echo $profileUrl; ?>">
-          <img src="<?php echo $avatarUrl; ?>" alt="<?php echo htmlspecialchars($displayName); ?>"
+        <a href="<?php echo $escProfile; ?>">
+          <img src="<?php echo $escAvatar; ?>" alt="<?php echo $escName; ?>"
              class="scc-header-avatar" />
         </a>
       <?php endif; ?>
@@ -175,17 +184,13 @@ $logoutReturn  = $params->get('logout', 'index.php');
           <circle cx="12" cy="12" r="9" fill="none" stroke="#92a7b9" stroke-width="1.5"/>
           <path d="M12 7V12 L16 14" stroke="#92a7b9" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
-        <span><?php echo $lastLoginTxt; ?>: <?php echo htmlspecialchars($lastLoginHtml); ?></span>
+        <span><?php echo $escLastTxt; ?>: <?php echo $escLastHtml; ?></span>
       </div>
     <?php endif; ?>
 
     <!-- Logout button -->
     <form action="<?php echo $logoutAction; ?>" method="post" class="scc-logout-form">
       <?php echo JHtml::_('form.token'); ?>
-      <input type="hidden" name="option" value="com_comprofiler" />
-      <input type="hidden" name="view" value="logout" />
-      <input type="hidden" name="task" value="logout" />
-      <input type="hidden" name="return" value="<?php echo urlencode($logoutReturn); ?>" />
       <button type="submit" class="scc-logout-btn">Logout</button>
     </form>
   </section>

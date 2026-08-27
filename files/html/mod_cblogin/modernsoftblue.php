@@ -4,18 +4,34 @@
  * ---------------------------------------------------------------------
  * Install: templates/tpl_jdseattle/html/mod_cblogin/modernsoftblue.php
  * Select:   Module → Advanced tab → Module Layout = "Modern Soft Blue"
+ *
+ * @version 1.1.0
  */
 defined('_JEXEC') or die;
 
 $scc_id = 'scc' . substr(md5(uniqid()), 0, 10);
-$styleUsername = $params->get('style_username_cssclass', '');
-$stylePassword = $params->get('style_password_cssclass', '');
-$styleLoginBtn = $params->get('style_login_cssclass', '');
-$styleForgot   = $params->get('style_forgotlogin_cssclass', '');
-$styleRegister = $params->get('style_register_cssclass', '');
+$styleUsername = (string) $params->get('style_username_cssclass', '');
+$stylePassword = (string) $params->get('style_password_cssclass', '');
+$styleLoginBtn = (string) $params->get('style_login_cssclass', '');
+$styleForgot   = (string) $params->get('style_forgotlogin_cssclass', '');
+$styleRegister = (string) $params->get('style_register_cssclass', '');
 $showRemember  = $params->get('remember_enabled', 1);
 $showForgot    = $params->get('show_lostpass', 1);
 $showRegister  = $params->get('show_newaccount', 1);
+
+// Forgot-login link: build a local route with the CB Itemid so the link works
+// regardless of the SEF/menu setup. NO hardcoded domain.
+$forgotItemid  = (int) $params->get('forgot_login_itemid', 0);
+$forgotUrl     = JRoute::_('index.php?option=com_comprofiler&view=lostpassword' . ($forgotItemid ? '&Itemid=' . $forgotItemid : ''), false);
+$registerUrl   = JRoute::_('index.php?option=com_users&view=registration', false);
+
+// Escape all admin-controllable params once.
+$escTitle    = htmlspecialchars($module->title, ENT_COMPAT, 'UTF-8');
+$escUsername = htmlspecialchars($styleUsername, ENT_COMPAT, 'UTF-8');
+$escPassword = htmlspecialchars($stylePassword, ENT_COMPAT, 'UTF-8');
+$escLoginBtn = htmlspecialchars($styleLoginBtn, ENT_COMPAT, 'UTF-8');
+$escForgot   = htmlspecialchars($styleForgot, ENT_COMPAT, 'UTF-8');
+$escRegister = htmlspecialchars($styleRegister, ENT_COMPAT, 'UTF-8');
 ?>
 <style>
 #<?php echo $scc_id; ?> .scc-card {
@@ -161,7 +177,7 @@ $showRegister  = $params->get('show_newaccount', 1);
 <div id="<?php echo $scc_id; ?>">
   <section class="scc-card">
     <?php if (trim($module->title) !== '') : ?>
-      <h3 class="scc-card-title"><?php echo htmlspecialchars($module->title, ENT_COMPAT, 'UTF-8'); ?></h3>
+      <h3 class="scc-card-title"><?php echo $escTitle; ?></h3>
     <?php endif; ?>
 
     <form action="<?php echo JRoute::_('index.php?option=com_comprofiler&view=login&op2=login', false); ?>"
@@ -183,8 +199,8 @@ $showRegister  = $params->get('show_newaccount', 1);
             <path d="M12 15.5C9.15 15.5 4 16.85 4 20.5V22H20V20.5C20 16.85 14.85 15.5 12 15.5Z" fill="#92a7b9"/>
           </svg>
           <input id="modlgn-username" type="text" name="username"
-                 class="form-control <?php echo htmlspecialchars($styleUsername, ENT_COMPAT, 'UTF-8'); ?>"
-                 placeholder="Username or Email" required />
+                 class="form-control <?php echo $escUsername; ?>"
+                 placeholder="Username or Email" autocomplete="username" required />
         </div>
       </div>
 
@@ -197,9 +213,9 @@ $showRegister  = $params->get('show_newaccount', 1);
             <path d="M8 9V6C8 4 9 2.5 12 2.5C15 2.5 16 4 16 6V9" fill="none" stroke="#92a7b9" stroke-width="1.5" stroke-linecap="round"/>
           </svg>
           <input id="modlgn-passwd" type="password" name="passwd"
-                 class="form-control <?php echo htmlspecialchars($stylePassword, ENT_COMPAT, 'UTF-8'); ?>"
-                 placeholder="Password" required />
-          <button type="button" class="scc-password-toggle" id="scc-toggle-pw" title="Show/hide password">
+                 class="form-control <?php echo $escPassword; ?>"
+                 placeholder="Password" autocomplete="current-password" required />
+          <button type="button" class="scc-password-toggle" id="<?php echo $scc_id; ?>-toggle-pw" title="Show/hide password">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M1 1l22 22M12 7.5V10.5M12 13.5V16.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
               <circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.5"/>
@@ -222,22 +238,18 @@ $showRegister  = $params->get('show_newaccount', 1);
       <?php endif; ?>
 
       <!-- Actions: Forgot Login (left) + Log in button (right) -->
-      <?php
-      $forgotUrl   = 'https://simcoecurlingclub.ca/scc-forgot-login';
-      $registerUrl = JRoute::_('index.php?option=com_users&view=registration', false);
-      ?>
       <div class="scc-action-row">
         <?php if ($showForgot): ?>
-          <a href="<?php echo $forgotUrl; ?>" class="<?php echo htmlspecialchars($styleForgot, ENT_COMPAT, 'UTF-8'); ?>">Forgot Login?</a>
+          <a href="<?php echo $forgotUrl; ?>" class="<?php echo $escForgot; ?>">Forgot Login?</a>
         <?php endif; ?>
-        <button type="submit" name="Submit" class="scc-login-btn <?php echo htmlspecialchars($styleLoginBtn, ENT_COMPAT, 'UTF-8'); ?>">Log in</button>
+        <button type="submit" name="Submit" class="scc-login-btn <?php echo $escLoginBtn; ?>">Log in</button>
       </div>
 
       <!-- Divider + Sign up -->
       <div class="scc-divider">New to SCC?</div>
       <?php if ($showRegister): ?>
         <div class="scc-login-links" style="justify-content:center; font-size:.75rem;">
-          <a href="<?php echo $registerUrl; ?>" class="<?php echo htmlspecialchars($styleRegister, ENT_COMPAT, 'UTF-8'); ?>">Sign up</a>
+          <a href="<?php echo $registerUrl; ?>" class="<?php echo $escRegister; ?>">Sign up</a>
         </div>
       <?php endif; ?>
     </form>
@@ -246,7 +258,7 @@ $showRegister  = $params->get('show_newaccount', 1);
 
 <script>
 (function() {
-  var toggle = document.getElementById('scc-toggle-pw');
+  var toggle = document.getElementById('<?php echo $scc_id; ?>-toggle-pw');
   var pw     = document.getElementById('modlgn-passwd');
   if (!toggle || !pw) return;
 
