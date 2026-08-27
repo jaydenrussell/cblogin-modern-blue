@@ -9,7 +9,7 @@
 		<client>site</client>
 		<infourl>https://github.com/jaydenrussell/cblogin-modern-blue</infourl>
 		<downloads>
-			<downloadurl type="full" format="zip" sha256="ba2f6105becc6b839f17e51708cfc61d14ecfe1d932a4471453e9318af190ecd">https://github.com/jaydenrussell/cblogin-modern-blue/releases/download/v1.2.5/cblogin-modern-blue.zip</downloadurl>
+			<downloadurl type="full" format="zip" sha256="1475191777e8afb46b3afde0c66f6d6a79aa9ddaced9ef2a704e5a86e7e83f9b">https://github.com/jaydenrussell/cblogin-modern-blue/releases/download/v1.2.5/cblogin-modern-blue.zip</downloadurl>
 		</downloads>
 		<tags>
 			<tag>stable</tag>
