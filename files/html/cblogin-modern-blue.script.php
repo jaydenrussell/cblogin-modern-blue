@@ -12,7 +12,7 @@
  *     matched — never a broad substring — so unrelated extensions are never
  *     hijacked or force-enabled.
  *
- * @version 1.2.9
+ * @version 1.3.0
  */
 defined('_JEXEC') or die;
 
@@ -77,7 +77,7 @@ class cbloginmodernblueInstallerScript
 	private function repairUpdateSite()
 	{
 		$name = 'Community Builder Login - Modern Blue Update';
-		$url  = 'https://github.com/jaydenrussell/cblogin-modern-blue/releases/download/v1.2.9/update.xml';
+		$url  = 'https://github.com/jaydenrussell/cblogin-modern-blue/releases/download/v1.3.0/update.xml';
 
 		try
 		{
