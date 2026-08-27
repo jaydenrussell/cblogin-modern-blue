@@ -10,7 +10,7 @@
  *     releases can never break update checks. If a stale per-version URL was left
  *     behind by an earlier build, this rewrites it to the permanent URL.
  *
- * @version 1.2.3
+ * @version 1.2.4
  */
 defined('_JEXEC') or die;
 
@@ -69,7 +69,7 @@ class cbloginmodernblueInstallerScript
 	 */
 	private function repairUpdateSite()
 	{
-		$url = 'https://github.com/jaydenrussell/cblogin-modern-blue/releases/latest/download/update.xml';
+		$url = 'https://raw.githubusercontent.com/jaydenrussell/cblogin-modern-blue/master/update.xml';
 
 		try
 		{
