@@ -6,11 +6,11 @@
  *  1. Warns loudly if the active front-end template is not tpl_jdseattle, because
  *     every override file this package installs is scoped to that template.
  *  2. Repairs + enables the update site on every install/update. The update URL is
- *     version-independent (.../releases/latest/download/update.xml) so deleting old
- *     releases can never break update checks. If a stale per-version URL was left
- *     behind by an earlier build, this rewrites it to the permanent URL.
+ *     served from the repo master branch (raw) so deleting old releases can never
+ *     break update checks. Any stale per-version URL (e.g. .../v1.2.1/update.xml)
+ *     left by an earlier build is rewritten to the current URL.
  *
- * @version 1.2.4
+ * @version 1.2.5
  */
 defined('_JEXEC') or die;
 
@@ -62,10 +62,12 @@ class cbloginmodernblueInstallerScript
 	}
 
 	/**
-	 * Ensure the registered update site points at the permanent, version-independent
-	 * URL and is enabled. This repairs stale per-version URLs left by earlier builds
-	 * (e.g. .../v1.2.1/update.xml after that release was deleted) so update checks
-	 * stop 404-ing. Matches the site via the linked extension, not a hardcoded URL.
+	 * Ensure ALL registered update sites for this package point at the permanent,
+	 * version-independent URL and are enabled. This repairs stale per-version URLs
+	 * left by earlier builds (e.g. .../v1.2.1/update.xml after that release was
+	 * deleted) so update checks stop 404-ing. Updates EVERY matching row, not just
+	 * the first, so orphaned sites (like #91) are healed regardless of how Joomla
+	 * matched the manifest <updateservers> on reinstall.
 	 */
 	private function repairUpdateSite()
 	{
@@ -75,37 +77,16 @@ class cbloginmodernblueInstallerScript
 		{
 			$db = \JFactory::getDbo();
 
-			// Find the update site linked to THIS extension.
-			$sub = $db->getQuery(true)
-				->select('update_site_id')
-				->from('#__update_sites_extensions')
-				->where('extension_id = (SELECT extension_id FROM #__extensions WHERE element = ' . $db->q('cblogin-modern-blue') . ' AND type = ' . $db->q('file') . ')');
-			$db->setQuery($sub);
-			$siteId = $db->loadResult();
-
-			if (!$siteId)
-			{
-				// Fallback: match by the old/current location string.
-				$db->setQuery(
-					$db->getQuery(true)
-						->select('update_site_id')
-						->from('#__update_sites')
-						->where('location LIKE ' . $db->q('%cblogin-modern-blue%update.xml'))
-				);
-				$siteId = $db->loadResult();
-			}
-
-			if ($siteId)
-			{
-				$db->setQuery(
-					$db->getQuery(true)
-						->update('#__update_sites')
-						->set('location = ' . $db->q($url))
-						->set('enabled = 1')
-						->where('update_site_id = ' . (int) $siteId)
-				);
-				$db->execute();
-			}
+			// Heal every row whose location references this package's update.xml,
+			// whether linked to this extension or left orphaned by an earlier build.
+			$db->setQuery(
+				$db->getQuery(true)
+					->update('#__update_sites')
+					->set('location = ' . $db->q($url))
+					->set('enabled = 1')
+					->where('location LIKE ' . $db->q('%cblogin-modern-blue%update.xml'))
+			);
+			$db->execute();
 		}
 		catch (\Exception $e)
 		{
