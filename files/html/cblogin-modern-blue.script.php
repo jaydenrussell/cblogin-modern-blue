@@ -12,7 +12,7 @@
  *     matched — never a broad substring — so unrelated extensions are never
  *     hijacked or force-enabled.
  *
- * @version 1.2.8
+ * @version 1.2.9
  */
 defined('_JEXEC') or die;
 
@@ -77,7 +77,7 @@ class cbloginmodernblueInstallerScript
 	private function repairUpdateSite()
 	{
 		$name = 'Community Builder Login - Modern Blue Update';
-		$url  = 'https://github.com/jaydenrussell/cblogin-modern-blue/releases/download/v1.2.8/update.xml';
+		$url  = 'https://github.com/jaydenrussell/cblogin-modern-blue/releases/download/v1.2.9/update.xml';
 
 		try
 		{
@@ -94,7 +94,15 @@ class cbloginmodernblueInstallerScript
 
 			if (!$eid)
 			{
-				// Extension row not available yet (rare ordering) — nothing to link.
+				// Extension row not available yet (e.g. discover_install edge case).
+				// Make it visible instead of silently skipping — an unregistered
+				// update site here means the extension will be unupdatable.
+				\JLog::add(
+					'CB Login Modern Blue: extension row (element=cblogin-modern-blue, type=file) not found; '
+					. 'update site was NOT registered. Re-run the install or check #__extensions.',
+					\JLog::WARNING,
+					'jerror'
+				);
 				return;
 			}
 

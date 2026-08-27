@@ -5,11 +5,11 @@
 		<description>Modern Soft Blue skin for the Community Builder Login module (mod_cblogin) + forgot-login page theming. Installed into the tpl_jdseattle template.</description>
 		<element>cblogin-modern-blue</element>
 		<type>file</type>
-		<version>1.2.8</version>
+		<version>1.2.9</version>
 		<client>site</client>
 		<infourl>https://github.com/jaydenrussell/cblogin-modern-blue</infourl>
 		<downloads>
-			<downloadurl type="full" format="zip" sha256="887f2dc4f095082006f11ae2ca7b69131f3bee27d19cba8bb860be8457c3ee3e">https://github.com/jaydenrussell/cblogin-modern-blue/releases/download/v1.2.8/cblogin-modern-blue.zip</downloadurl>
+			<downloadurl type="full" format="zip" sha256="c00001666c8f01aaf385bb73b06820a5dce70c314b1d270f87ebf0135c4e1309">https://github.com/jaydenrussell/cblogin-modern-blue/releases/download/v1.2.9/cblogin-modern-blue.zip</downloadurl>
 		</downloads>
 		<tags>
 			<tag>stable</tag>
