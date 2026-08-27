@@ -3,15 +3,17 @@
  * Community Builder Login - Modern Blue — installer script.
  *
  * Postflight:
- *  1. Warns loudly if the active front-end template is not tpl_jdseattle, because
- *     every override file this package installs is scoped to that template.
-	 *  2. Repairs + enables the update site on every install/update. The update URL is
-	 *     the release-asset feed (.../releases/download/<ver>/update.xml) so it never
-	 *     404s while that release exists. Any stale per-version URL (e.g. .../v1.2.1/update.xml)
-	 *     left by an earlier build is rewritten to the current URL.
-	 *
-	 * @version 1.2.6
-	 */
+ *  1. Hard-fails the install if the active front-end template is not
+ *     tpl_jdseattle. Every override file this package installs is scoped to
+ *     that template; installing onto another template produces a silently-dead
+ *     extension, so we abort with a clear message instead of just warning.
+ *  2. Repairs update sites that point at stale per-version URLs (left behind by
+ *     earlier builds) and re-enables them. Only the specific known-bad URLs are
+ *     matched — never a broad substring — so unrelated extensions are never
+ *     hijacked or force-enabled.
+ *
+ * @version 1.2.7
+ */
 defined('_JEXEC') or die;
 
 class cbloginmodernblueInstallerScript
@@ -22,14 +24,16 @@ class cbloginmodernblueInstallerScript
 	 */
 	public function postflight($route, $adapter)
 	{
-		$this->warnIfWrongTemplate();
+		$this->abortIfWrongTemplate();
 		$this->repairUpdateSite();
 	}
 
 	/**
-	 * Warn if the active front-end template is not the one these overrides target.
+	 * Abort the install unless the active front-end template is tpl_jdseattle.
+	 *
+	 * @throws \RuntimeException  when the active template is a different one.
 	 */
-	private function warnIfWrongTemplate()
+	private function abortIfWrongTemplate()
 	{
 		try
 		{
@@ -47,44 +51,53 @@ class cbloginmodernblueInstallerScript
 			$active = '';
 		}
 
+		// Empty = could not determine (DB error). Warn only; do not block.
 		if ($active !== '' && $active !== 'tpl_jdseattle')
 		{
-			\JLog::add(
-				'Community Builder Login - Modern Blue installed, but the active front-end template is "'
-					. $active
-					. '", not "tpl_jdseattle". All overrides in this package are scoped to tpl_jdseattle '
-					. 'and will NOT render until the template matches or the override files are copied '
-					. 'into templates/' . $active . '/html/.',
-				\JLog::WARNING,
-				'jerror'
+			throw new \RuntimeException(
+				'Community Builder Login - Modern Blue can only be installed on the "tpl_jdseattle" '
+				. 'template. The active front-end template is "' . $active . '". Every override file '
+				. 'in this package is scoped to templates/tpl_jdseattle/html/ and will NOT render on '
+				. 'any other template. Switch the default site template to tpl_jdseattle, or fork this '
+				. 'package and change the <fileset> targets in cblogin-modern-blue.xml, before installing.'
 			);
 		}
 	}
 
 	/**
-	 * Ensure ALL registered update sites for this package point at the permanent,
-	 * version-independent URL and are enabled. This repairs stale per-version URLs
-	 * left by earlier builds (e.g. .../v1.2.1/update.xml after that release was
-	 * deleted) so update checks stop 404-ing. Updates EVERY matching row, not just
-	 * the first, so orphaned sites (like #91) are healed regardless of how Joomla
-	 * matched the manifest <updateservers> on reinstall.
+	 * Rewrite any update-site rows that still point at a stale per-version URL
+	 * to the current release-asset feed, and re-enable them.
+	 *
+	 * Only the specific URLs left by earlier builds (v1.2.1 per-version, v1.2.1
+	 * /vX.Y.Z/, and the old master-raw feed) are matched. A broad LIKE on the
+	 * package name is intentionally avoided so that unrelated extensions whose
+	 * feed URL merely contains "cblogin-modern-blue" are never touched.
 	 */
 	private function repairUpdateSite()
 	{
-		$url = 'https://github.com/jaydenrussell/cblogin-modern-blue/releases/download/v1.2.6/update.xml';
+		$url = 'https://github.com/jaydenrussell/cblogin-modern-blue/releases/download/v1.2.7/update.xml';
 
 		try
 		{
 			$db = \JFactory::getDbo();
 
-			// Heal every row whose location references this package's update.xml,
-			// whether linked to this extension or left orphaned by an earlier build.
+			$stale = array(
+				'%releases/download/v1.2.1/update.xml%',
+				'%/v1.2.1/update.xml%',
+				'%/master/update.xml%',
+			);
+			$conds = array();
+			foreach ($stale as $s)
+			{
+				$conds[] = 'location LIKE ' . $db->q($s);
+			}
+
 			$db->setQuery(
 				$db->getQuery(true)
 					->update('#__update_sites')
 					->set('location = ' . $db->q($url))
 					->set('enabled = 1')
-					->where('location LIKE ' . $db->q('%cblogin-modern-blue%update.xml'))
+					->where(implode(' OR ', $conds))
 			);
 			$db->execute();
 		}

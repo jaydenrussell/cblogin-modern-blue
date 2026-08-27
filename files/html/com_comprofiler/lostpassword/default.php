@@ -6,7 +6,7 @@
  * Injects the SCC forgot-login CSS, then includes Community Builder's original
  * lostpassword view so all CB rendering is preserved.
  *
- * @version 1.1.0
+ * @version 1.2.7
  */
 defined('_JEXEC') or die;
 
