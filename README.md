@@ -1,4 +1,4 @@
-# CB Login Modern Blue — Joomla CB Login module skin
+# Community Builder Login - Modern Blue — Joomla CB Login module skin
 
 A Joomla **installable package** that skins the **Community Builder Login module**
 (`mod_cblogin`) with a modern soft-blue "Modern Soft Blue" layout, and themes the CB
