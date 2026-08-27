@@ -153,6 +153,35 @@ class cbloginmodernblueInstallerScript
 					)->execute();
 				}
 			}
+
+			// Dedupe: keep only the linked site; delete any orphan/duplicate rows
+			// whose location references this package but is not the linked one.
+			$linked = (int) $db->setQuery(
+				$db->getQuery(true)
+					->select('s.update_site_id')
+					->from('#__update_sites as s')
+					->join('LEFT', '#__update_sites_extensions as se ON se.update_site_id = s.update_site_id')
+					->where('se.extension_id = ' . $eid)
+					->where('s.name = ' . $db->q($name))
+					->order('s.update_site_id DESC')
+			)->loadResult();
+
+			if ($linked)
+			{
+				$db->setQuery(
+					$db->getQuery(true)
+						->delete('#__update_sites')
+						->where('location LIKE ' . $db->q('%cblogin-modern-blue%update.xml'))
+						->where('update_site_id <> ' . $linked)
+				)->execute();
+				// Also remove now-orphaned link rows.
+				$db->setQuery(
+					$db->getQuery(true)
+						->delete('#__update_sites_extensions')
+						->where('update_site_id <> ' . $linked)
+						->where('update_site_id NOT IN (SELECT update_site_id FROM #__update_sites)')
+				)->execute();
+			}
 		}
 		catch (\Exception $e)
 		{
