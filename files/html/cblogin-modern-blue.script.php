@@ -12,7 +12,7 @@
  *     matched — never a broad substring — so unrelated extensions are never
  *     hijacked or force-enabled.
  *
- * @version 1.2.7
+ * @version 1.2.8
  */
 defined('_JEXEC') or die;
 
@@ -65,22 +65,85 @@ class cbloginmodernblueInstallerScript
 	}
 
 	/**
-	 * Rewrite any update-site rows that still point at a stale per-version URL
-	 * to the current release-asset feed, and re-enable them.
+	 * Ensure a working update site exists and points at the current release-asset
+	 * feed. Joomla 3.10's FileAdapter does NOT register <updateservers> from a
+	 * type="file" manifest, so the install alone creates no update site. We:
+	 *   1. INSERT a site (linked to THIS extension) if none exists yet, and
+	 *   2. Rewrite any stale per-version URLs left by earlier builds, re-enabling.
 	 *
-	 * Only the specific URLs left by earlier builds (v1.2.1 per-version, v1.2.1
-	 * /vX.Y.Z/, and the old master-raw feed) are matched. A broad LIKE on the
-	 * package name is intentionally avoided so that unrelated extensions whose
-	 * feed URL merely contains "cblogin-modern-blue" are never touched.
+	 * Only the specific stale URLs created by earlier builds are matched (never a
+	 * broad substring), so unrelated extensions are never touched or force-enabled.
 	 */
 	private function repairUpdateSite()
 	{
-		$url = 'https://github.com/jaydenrussell/cblogin-modern-blue/releases/download/v1.2.7/update.xml';
+		$name = 'Community Builder Login - Modern Blue Update';
+		$url  = 'https://github.com/jaydenrussell/cblogin-modern-blue/releases/download/v1.2.8/update.xml';
 
 		try
 		{
 			$db = \JFactory::getDbo();
 
+			// Find this extension's ID by element + type.
+			$eid = (int) $db->setQuery(
+				$db->getQuery(true)
+					->select('extension_id')
+					->from('#__extensions')
+					->where('element = ' . $db->q('cblogin-modern-blue'))
+					->where('type = ' . $db->q('file'))
+			)->loadResult();
+
+			if (!$eid)
+			{
+				// Extension row not available yet (rare ordering) — nothing to link.
+				return;
+			}
+
+			// Does a site already link to this extension?
+			$existing = (int) $db->setQuery(
+				$db->getQuery(true)
+					->select('s.update_site_id')
+					->from('#__update_sites as s')
+					->join('LEFT', '#__update_sites_extensions as se ON se.update_site_id = s.update_site_id')
+					->where('se.extension_id = ' . $eid)
+					->where('s.name = ' . $db->q($name))
+			)->loadResult();
+
+			if (!$existing)
+			{
+				// INSERT a fresh update site + link row.
+				$db->setQuery(
+					$db->getQuery(true)
+						->insert('#__update_sites')
+						->columns(array('name', 'type', 'location', 'enabled', 'last_check_timestamp', 'extra_query'))
+						->values(
+							$db->q($name) . ', ' . $db->q('extension') . ', ' . $db->q($url) . ', 1, 0, ' . $db->q('')
+						)
+				)->execute();
+				$newId = (int) $db->insertid();
+
+				if ($newId)
+				{
+					$db->setQuery(
+						$db->getQuery(true)
+							->insert('#__update_sites_extensions')
+							->columns(array('update_site_id', 'extension_id'))
+							->values($newId . ', ' . $eid)
+					)->execute();
+				}
+			}
+			else
+			{
+				// UPDATE existing linked site to the current feed + enabled.
+				$db->setQuery(
+					$db->getQuery(true)
+						->update('#__update_sites')
+						->set('location = ' . $db->q($url))
+						->set('enabled = 1')
+						->where('update_site_id = ' . $existing)
+				)->execute();
+			}
+
+			// Heal any other stale rows (orphaned from earlier builds) — targeted URLs only.
 			$stale = array(
 				'%releases/download/v1.2.1/update.xml%',
 				'%/v1.2.1/update.xml%',
@@ -98,8 +161,7 @@ class cbloginmodernblueInstallerScript
 					->set('location = ' . $db->q($url))
 					->set('enabled = 1')
 					->where(implode(' OR ', $conds))
-			);
-			$db->execute();
+			)->execute();
 		}
 		catch (\Exception $e)
 		{
