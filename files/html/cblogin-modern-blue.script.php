@@ -81,8 +81,12 @@ class cbloginmodernblueInstallerScript
 	 */
 	private function repairUpdateSite()
 	{
-		// STABLE, version-independent feed. Update this file on every release.
-		$url = 'https://raw.githubusercontent.com/jaydenrussell/cblogin-modern-blue/master/update.xml';
+		// STABLE, version-independent feed served from the release-asset CDN
+		// (releases/latest/download/update.xml). This CDN is reliable and the URL
+		// auto-advances to the newest release, so detection works for every future
+		// release WITHOUT changing the installed site URL. Requires that releases
+		// are NEVER deleted (deleting the latest release breaks the /latest/ alias).
+		$url = 'https://github.com/jaydenrussell/cblogin-modern-blue/releases/latest/download/update.xml';
 		$name = 'Community Builder Login - Modern Blue Update';
 
 		try
