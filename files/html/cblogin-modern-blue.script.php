@@ -5,13 +5,13 @@
  * Postflight:
  *  1. Warns loudly if the active front-end template is not tpl_jdseattle, because
  *     every override file this package installs is scoped to that template.
- *  2. Repairs + enables the update site on every install/update. The update URL is
- *     served from the repo master branch (raw) so deleting old releases can never
- *     break update checks. Any stale per-version URL (e.g. .../v1.2.1/update.xml)
- *     left by an earlier build is rewritten to the current URL.
- *
- * @version 1.2.5
- */
+	 *  2. Repairs + enables the update site on every install/update. The update URL is
+	 *     the release-asset feed (.../releases/download/<ver>/update.xml) so it never
+	 *     404s while that release exists. Any stale per-version URL (e.g. .../v1.2.1/update.xml)
+	 *     left by an earlier build is rewritten to the current URL.
+	 *
+	 * @version 1.2.6
+	 */
 defined('_JEXEC') or die;
 
 class cbloginmodernblueInstallerScript
@@ -71,7 +71,7 @@ class cbloginmodernblueInstallerScript
 	 */
 	private function repairUpdateSite()
 	{
-		$url = 'https://raw.githubusercontent.com/jaydenrussell/cblogin-modern-blue/master/update.xml';
+		$url = 'https://github.com/jaydenrussell/cblogin-modern-blue/releases/download/v1.2.6/update.xml';
 
 		try
 		{
