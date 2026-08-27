@@ -5,13 +5,12 @@
  * Postflight:
  *  1. Warns loudly if the active front-end template is not tpl_jdseattle, because
  *     every override file this package installs is scoped to that template.
- *  2. Guarantees the update site is ENABLED so Joomla's native Extensions > Update
- *     finds future releases. The site itself is registered by the manifest
- *     <updateservers> element (canonical registrar); this script only re-enables it
- *     on every install/update so a transient fetch timeout during "Find" cannot
- *     leave it permanently disabled on cheap hosting.
+ *  2. Repairs + enables the update site on every install/update. The update URL is
+ *     version-independent (.../releases/latest/download/update.xml) so deleting old
+ *     releases can never break update checks. If a stale per-version URL was left
+ *     behind by an earlier build, this rewrites it to the permanent URL.
  *
- * @version 1.2.1
+ * @version 1.2.3
  */
 defined('_JEXEC') or die;
 
@@ -24,7 +23,7 @@ class cbloginmodernblueInstallerScript
 	public function postflight($route, $adapter)
 	{
 		$this->warnIfWrongTemplate();
-		$this->ensureUpdateSiteEnabled();
+		$this->repairUpdateSite();
 	}
 
 	/**
@@ -63,30 +62,45 @@ class cbloginmodernblueInstallerScript
 	}
 
 	/**
-	 * Re-enable the registered update site on every install/update so a transient
-	 * fetch timeout during "Extensions > Update > Find" cannot leave it disabled.
-	 * Registration is owned by the manifest <updateservers>; this never inserts.
+	 * Ensure the registered update site points at the permanent, version-independent
+	 * URL and is enabled. This repairs stale per-version URLs left by earlier builds
+	 * (e.g. .../v1.2.1/update.xml after that release was deleted) so update checks
+	 * stop 404-ing. Matches the site via the linked extension, not a hardcoded URL.
 	 */
-	private function ensureUpdateSiteEnabled()
+	private function repairUpdateSite()
 	{
-		$url = 'https://raw.githubusercontent.com/jaydenrussell/cblogin-modern-blue/master/update.xml';
+		$url = 'https://github.com/jaydenrussell/cblogin-modern-blue/releases/latest/download/update.xml';
 
 		try
 		{
 			$db = \JFactory::getDbo();
 
-			$check = $db->getQuery(true)
+			// Find the update site linked to THIS extension.
+			$sub = $db->getQuery(true)
 				->select('update_site_id')
-				->from('#__update_sites')
-				->where('location = ' . $db->q($url));
-			$db->setQuery($check);
+				->from('#__update_sites_extensions')
+				->where('extension_id = (SELECT extension_id FROM #__extensions WHERE element = ' . $db->q('cblogin-modern-blue') . ' AND type = ' . $db->q('file') . ')');
+			$db->setQuery($sub);
 			$siteId = $db->loadResult();
+
+			if (!$siteId)
+			{
+				// Fallback: match by the old/current location string.
+				$db->setQuery(
+					$db->getQuery(true)
+						->select('update_site_id')
+						->from('#__update_sites')
+						->where('location LIKE ' . $db->q('%cblogin-modern-blue%update.xml'))
+				);
+				$siteId = $db->loadResult();
+			}
 
 			if ($siteId)
 			{
 				$db->setQuery(
 					$db->getQuery(true)
 						->update('#__update_sites')
+						->set('location = ' . $db->q($url))
 						->set('enabled = 1')
 						->where('update_site_id = ' . (int) $siteId)
 				);
@@ -95,8 +109,7 @@ class cbloginmodernblueInstallerScript
 		}
 		catch (\Exception $e)
 		{
-			// Non-fatal: the manifest <updateservers> already registered the site.
-			\JLog::add('CB Login Modern Blue: could not re-enable update site — ' . $e->getMessage(), \JLog::WARNING, 'jerror');
+			\JLog::add('CB Login Modern Blue: could not repair update site — ' . $e->getMessage(), \JLog::WARNING, 'jerror');
 		}
 	}
 }
