@@ -1,6 +1,6 @@
 <?php
 /**
- * CB Login — Modern Soft Blue layout override (logged-in / logout state) v1.2.7
+ * CB Login — Modern Soft Blue layout override (logged-in / logout state) v1.3.5
  * ---------------------------------------------------------------------------
  * Shows: avatar in header, "Welcome, [name]" header as hyperlink to profile,
  * last login timestamp, + logout button.
@@ -9,11 +9,11 @@
  * getField). This override only runs inside the CB Login module, so CB's full
  * API + fieldtype renderer are always available — no direct DB query needed.
  *
- * @version 1.2.7
+ * @version 1.3.5
  */
 defined('_JEXEC') or die;
 
-$scc_id = 'scc' . substr(md5(uniqid()), 0, 10);
+$scc_id = 'scc' . bin2hex(random_bytes(8));
 $user = JFactory::getUser();
 
 $avatarUrl     = '';
@@ -27,43 +27,50 @@ $lastLoginTxt  = (string) $params->get('text_last_login', 'Last login');
 $profileItemid  = (int) $params->get('profile_itemid', 0);
 $profileUrl     = JRoute::_('index.php?option=com_comprofiler&view=userprofile' . ($profileItemid ? '&Itemid=' . $profileItemid : ''), false);
 
-// --- Display name via CB typename (consistent across pages) ---
+// --- Display name + Avatar via CB API (single getInstance call) ---
 if (class_exists('CBuser') && !$user->guest) {
-    $cbUser = CBuser::getInstance((int) $user->id, false);
-    if ($cbUser) {
-        $cbName = $cbUser->getField('typename', null, 'raw');
-        if ($cbName) {
-            $displayName = $cbName;
+    try {
+        $cbUser = CBuser::getInstance((int) $user->id, false);
+        if ($cbUser) {
+            $cbName = $cbUser->getField('typename', null, 'raw');
+            if ($cbName) {
+                $displayName = $cbName;
+            }
+
+            $avatarHtml = $cbUser->getField('avatar', null, 'html', 'none', 'profile', 0, false);
+            if ($avatarHtml) {
+                if (preg_match('#src="([^"]+)"#i', $avatarHtml, $m)) {
+                    $avatarUrl = $m[1];
+                } elseif (preg_match("#src='([^']+)'#i", $avatarHtml, $m)) {
+                    $avatarUrl = $m[1];
+                }
+            }
         }
+    } catch (\Exception $e) {
+        // CB API failed — fall back to Joomla user name and no avatar.
+        $avatarUrl = '';
     }
 }
 
-// --- Avatar: CB API (CB is always loaded for this module) ---
-// 'profile' reason returns the full master image; we extract the src URL.
-if (class_exists('CBuser') && !$user->guest) {
-    $cbUser = CBuser::getInstance((int) $user->id, false);
-    if ($cbUser) {
-        $avatarHtml = $cbUser->getField('avatar', null, 'html', 'none', 'profile', 0, false);
-        if ($avatarHtml && preg_match('#src="([^"]+)"#i', $avatarHtml, $m)) {
-            $avatarUrl = $m[1];
-        } elseif ($avatarHtml && preg_match("#src='([^']+)'#i", $avatarHtml, $m)) {
-            $avatarUrl = $m[1];
-        }
-    }
-}
-
-// URL normalization: keep only a root-relative path for the current host.
-// This avoids leaking to a wrong domain and keeps the markup simple/portable.
+// Avatar URL sanitization: only allow root-relative paths or same-origin absolute.
+// Reject data:, javascript:, file: schemes. Reject cross-domain absolute URLs.
 if ($avatarUrl !== '') {
-    $abs = (strpos($avatarUrl, 'http') === 0);
-    if (!$abs && strpos($avatarUrl, '/') === 0) {
-        // already root-relative — leave as-is
-    } elseif ($abs) {
+    $scheme = parse_url($avatarUrl, PHP_URL_SCHEME);
+    if ($scheme !== null && !in_array(strtolower($scheme), array('http', 'https'), true)) {
+        $avatarUrl = '';
+    } elseif (strpos($avatarUrl, '/') === 0) {
+        // Root-relative — safe, leave as-is.
+    } elseif (preg_match('#^https?://#i', $avatarUrl)) {
         $host = parse_url($avatarUrl, PHP_URL_HOST);
         if ($host && $host === JUri::getInstance()->getHost()) {
             $avatarUrl = '/' . ltrim(parse_url($avatarUrl, PHP_URL_PATH), '/');
+        } else {
+            // Cross-domain — block to prevent cross-origin info leak.
+            $avatarUrl = '';
         }
-        // If the host differs, leave the absolute URL (cross-domain avatar) untouched.
+    } else {
+        // Relative path or unknown — reject.
+        $avatarUrl = '';
     }
 }
 
@@ -88,84 +95,13 @@ $escAvatar    = htmlspecialchars($avatarUrl, ENT_COMPAT, 'UTF-8');
 $escLastTxt   = htmlspecialchars($lastLoginTxt, ENT_COMPAT, 'UTF-8');
 $escLastHtml  = htmlspecialchars($lastLoginHtml, ENT_COMPAT, 'UTF-8');
 $escProfile   = htmlspecialchars($profileUrl, ENT_COMPAT, 'UTF-8');
-?>
-<style>
-#<?php echo $scc_id; ?> .scc-card {
-  background:#ffffff;
-  border:1px solid #e3ebf5;
-  border-radius:16px;
-  box-shadow:0 6px 18px rgba(17,24,39,0.08);
-  padding:1rem 1.2rem 1.1rem 1.2rem;
-  margin:0 0 1.5rem 0;
-  overflow:visible;
-}
-#<?php echo $scc_id; ?> .scc-card-title {
-  position:relative;
-  font-size:1.05rem;
-  font-weight:700;
-  letter-spacing:.2px;
-  line-height:1.25;
-  color:#15324a;
-  margin:0;
-  padding:0 0 .55rem .7rem;
-  border-bottom:1px solid #e6ecf0 !important;
-}
-#<?php echo $scc_id; ?> .scc-card-title .scc-greeting {
-  font-weight:600;
-  color:#4a647a;
-}
-#<?php echo $scc_id; ?> .scc-card-title .scc-name {
-  display:block;
-  overflow-wrap:anywhere;
-  word-break:break-word;
-}
-#<?php echo $scc_id; ?> .scc-header {
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:.75rem;
-  overflow:visible;
-  position:relative;
-}
-#<?php echo $scc_id; ?> .scc-header-text {
-  min-width:0;
-  flex:1 1 auto;
-}
-#<?php echo $scc_id; ?> .scc-header-avatar {
-  flex:0 0 auto;
-  width:48px; height:48px;
-  border-radius:50%;
-  object-fit:cover;
-  border:2px solid #e3ebf5;
-}
-#<?php echo $scc_id; ?> .scc-header-avatar svg {
-  width:48px; height:48px;
-}
-#<?php echo $scc_id; ?> .scc-last-login {
-  font-size:.72rem;
-  color:#92a7b9;
-  margin-top:.3rem;
-  display:flex;
-  align-items:center;
-  gap:.3rem;
-}
-#<?php echo $scc_id; ?> .scc-logout-form { margin-top:.6rem; }
-#<?php echo $scc_id; ?> .scc-logout-btn {
-  width:100%;
-  background:#1890d7;
-  color:#ffffff;
-  border:0;
-  border-radius:8px;
-  padding:.42rem;
-  font-size:.78rem;
-  font-weight:600;
-  cursor:pointer;
-  transition:background .15s;
-}
-#<?php echo $scc_id; ?> .scc-logout-btn:hover { background:#157bb3; }
-</style>
 
-<div id="<?php echo $scc_id; ?>">
+// Enqueue external CSS (cacheable).
+$tplPath = 'templates/' . JFactory::getApplication()->getTemplate();
+$cssUrl  = $tplPath . '/html/mod_cblogin/modernsoftblue_logout.css';
+echo '<link rel="stylesheet" href="' . htmlspecialchars($cssUrl, ENT_COMPAT, 'UTF-8') . '" />';
+?>
+<div class="scc-modern-blue" id="<?php echo $scc_id; ?>">
   <section class="scc-card">
     <!-- Header: Welcome + name + avatar (both link to profile) -->
     <div class="scc-header">
@@ -176,10 +112,10 @@ $escProfile   = htmlspecialchars($profileUrl, ENT_COMPAT, 'UTF-8');
           </a>
         </h3>
       </div>
-      <?php if ($showAvatar): ?>
+      <?php if ($showAvatar && $avatarUrl !== ''): ?>
         <a href="<?php echo $escProfile; ?>">
           <img src="<?php echo $escAvatar; ?>" alt="<?php echo $escName; ?>"
-             class="scc-header-avatar" />
+             class="scc-header-avatar" loading="lazy" />
         </a>
       <?php endif; ?>
     </div>

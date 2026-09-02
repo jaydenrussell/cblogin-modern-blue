@@ -12,6 +12,9 @@ forgot-login page. Installs into the Astroid `tpl_jdseattle` template.
    ```
    templates/tpl_jdseattle/html/mod_cblogin/modernsoftblue.php
    templates/tpl_jdseattle/html/mod_cblogin/modernsoftblue_logout.php
+   templates/tpl_jdseattle/html/mod_cblogin/modernsoftblue.css
+   templates/tpl_jdseattle/html/mod_cblogin/modernsoftblue_logout.css
+   templates/tpl_jdseattle/html/mod_cblogin/modernsoftblue.js
    ```
 3. In the CB Login module: **Advanced tab → Module Layout = "Modern Soft Blue"** (login),
    and the logout state uses `modernsoftblue_logout.php` automatically.
@@ -31,8 +34,11 @@ pkg_cblogin-modern-blue.xml   # package manifest (type=package)
 update.xml                    # GitHub-based update feed
 files/sccfiles.xml            # inner file-extension manifest (target = template html/)
 files/html/mod_cblogin/
-├── modernsoftblue.php          # Logged-OUT state: styled login form
-└── modernsoftblue_logout.php   # Logged-IN state: avatar + welcome name + logout
+├── modernsoftblue.php            # Logged-OUT state: styled login form
+├── modernsoftblue_logout.php     # Logged-IN state: avatar + welcome name + logout
+├── modernsoftblue.css            # Externalized login styles (cacheable)
+├── modernsoftblue_logout.css     # Externalized logout styles (cacheable)
+└── modernsoftblue.js             # Externalized password-toggle JS (cacheable)
 ```
 
 ## Behaviour
@@ -66,6 +72,11 @@ safely skips avatar rendering.
 - **v1.2.0 hardening:** all admin-controlled values (`$module->title` and the
   `$style*_cssclass` params) are escaped with `htmlspecialchars()` — eliminates
   the admin-only XSS vectors present in earlier versions.
+- **v1.3.5 hardening:** CSS/JS externalized (cacheable, CSP-friendly); element
+  IDs use `random_bytes()` (unpredictable, unique); avatar URLs restricted to
+  same-origin/root-relative only (blocks data:/javascript:/cross-domain leaks);
+  logout form uses a scoped, unique `id` to prevent duplicate-ID collisions;
+  CB API calls wrapped in `try/catch` with graceful fallback.
 
 ## Version history
 
@@ -76,6 +87,7 @@ safely skips avatar rendering.
 | 1.2.0 | Packaged as installable Joomla package; security hardening (escape admin-controlled output) |
 | 1.3.0 | Added CB forgot-login page theming (com_comprofiler override) + update.xml |
 | 1.3.1 | Avatar + display name via CB API (no direct DB query — CB always loaded for this module) |
+| 1.3.5 | Externalize CSS/JS; random_bytes() IDs; avatar URL sanitization; unique form IDs; try/catch around CB API |
 
 ## License
 
