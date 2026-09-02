@@ -12,7 +12,7 @@
  *     matched — never a broad substring — so unrelated extensions are never
  *     hijacked or force-enabled.
  *
- * @version 1.3.0
+ * @version 1.3.6
  */
 defined('_JEXEC') or die;
 
@@ -71,9 +71,9 @@ class cbloginmodernblueInstallerScript
 	 * Why a stable URL: Joomla's update site location is version-pinned at install
 	 * time. If it points at ".../v1.2.9/update.xml" it can ONLY ever report 1.2.9 and
 	 * will never detect a newer release — which is exactly the "never detects" bug.
-	 * The stable feed (repo master update.xml) always declares the current latest
-	 * version, so detection works for every future release without touching the
-	 * installed site.
+	 * The stable feed (a release asset named update.xml) always declares the current
+	 * latest version, so detection works for every future release without touching
+	 * the installed site.
 	 *
 	 * Joomla 3.10's FileAdapter does NOT register <updateservers> from a type="file"
 	 * manifest, so we INSERT the site if missing and rewrite/enable it (and any
@@ -81,12 +81,14 @@ class cbloginmodernblueInstallerScript
 	 */
 	private function repairUpdateSite()
 	{
-		// STABLE, version-independent feed served from GitHub Pages
-		// (jaydenrussell.github.io), which is reliably reachable from the site host
-		// (raw.githubusercontent.com / releases CDN were blocked on some hosts).
+		// STABLE, version-independent feed served as the "update.xml" asset of the
+		// latest GitHub release. GitHub's /releases/latest/download/<asset> redirect
+		// always resolves to the newest non-draft release, so the feed is hosted on
+		// GitHub's own release CDN — no third-party Pages/CDN caching to fight.
+		// Each release must attach an "update.xml" asset (beside the package zip).
 		// The feed always declares the current latest version, so detection works
 		// for every future release WITHOUT changing the installed site URL.
-		$url = 'https://jaydenrussell.github.io/cblogin-modern-blue/update.xml';
+		$url = 'https://github.com/jaydenrussell/cblogin-modern-blue/releases/latest/download/update.xml';
 		$name = 'Community Builder Login - Modern Blue Update';
 
 		try

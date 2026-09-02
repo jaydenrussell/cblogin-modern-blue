@@ -31,7 +31,7 @@ forgot-login page. Installs into the Astroid `tpl_jdseattle` template.
 
 ```
 pkg_cblogin-modern-blue.xml   # package manifest (type=package)
-update.xml                    # GitHub-based update feed
+update.xml                    # update feed; attached as an asset to every GitHub release
 files/sccfiles.xml            # inner file-extension manifest (target = template html/)
 files/html/mod_cblogin/
 ├── modernsoftblue.php            # Logged-OUT state: styled login form
@@ -40,6 +40,19 @@ files/html/mod_cblogin/
 ├── modernsoftblue_logout.css     # Externalized logout styles (cacheable)
 └── modernsoftblue.js             # Externalized password-toggle JS (cacheable)
 ```
+
+## Update feed
+
+The Joomla update site is `https://github.com/jaydenrussell/cblogin-modern-blue/releases/latest/download/update.xml`
+— GitHub's `/releases/latest/download/<asset>` redirect, so it is hosted on GitHub's own
+release CDN (not Pages, no third-party caching to fight) and is version-independent.
+
+**Every new release MUST attach two assets with these exact names:**
+- `cblogin-modern-blue.zip` — the installable package
+- `update.xml` — the current feed (declares the new version + the zip's SHA256)
+
+The installer's postflight (`repairUpdateSite`) rewrites/enables the update site to the
+`releases/latest` URL on every install/upgrade, so stale per-version URLs self-heal.
 
 ## Behaviour
 
@@ -88,6 +101,7 @@ safely skips avatar rendering.
 | 1.3.0 | Added CB forgot-login page theming (com_comprofiler override) + update.xml |
 | 1.3.1 | Avatar + display name via CB API (no direct DB query — CB always loaded for this module) |
 | 1.3.5 | Externalize CSS/JS; random_bytes() IDs; avatar URL sanitization; unique form IDs; try/catch around CB API |
+| 1.3.6 | Update feed moved off GitHub Pages to a GitHub release asset (`releases/latest/download/update.xml`) — no CDN caching |
 
 ## License
 

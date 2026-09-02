@@ -1,7 +1,7 @@
 /**
  * CB Login — Modern Soft Blue password toggle
  * Scoped to .scc-modern-blue container via event delegation.
- * @version 1.3.5
+ * @version 1.3.6
  */
 (function () {
   var toggles = document.querySelectorAll('.scc-modern-blue .scc-password-toggle');
