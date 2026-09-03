@@ -31,7 +31,7 @@ forgot-login page. Installs into the Astroid `tpl_jdseattle` template.
 
 ```
 pkg_cblogin-modern-blue.xml   # package manifest (type=package)
-update.xml                    # update feed; attached as an asset to every GitHub release
+update.xml                    # update feed; hosted directly in the GitHub repo (NO release asset)
 files/sccfiles.xml            # inner file-extension manifest (target = template html/)
 files/html/mod_cblogin/
 ├── modernsoftblue.php            # Logged-OUT state: styled login form
@@ -43,16 +43,22 @@ files/html/mod_cblogin/
 
 ## Update feed
 
-The Joomla update site is `https://github.com/jaydenrussell/cblogin-modern-blue/releases/latest/download/update.xml`
-— GitHub's `/releases/latest/download/<asset>` redirect, so it is hosted on GitHub's own
-release CDN (not Pages, no third-party caching to fight) and is version-independent.
+The Joomla update site is
 
-**Every new release MUST attach two assets with these exact names:**
-- `cblogin-modern-blue.zip` — the installable package
-- `update.xml` — the current feed (declares the new version + the zip's SHA256)
+```
+https://raw.githubusercontent.com/jaydenrussell/cblogin-modern-blue/master/update.xml
+```
 
-The installer's postflight (`repairUpdateSite`) rewrites/enables the update site to the
-`releases/latest` URL on every install/upgrade, so stale per-version URLs self-heal.
+This is the `update.xml` **file hosted in the repo itself**, served directly from GitHub's
+raw host. It is a plain HTTP 200 — no release-asset redirect, no third-party CDN, nothing to
+cache or "poison." When `update.xml` is committed/updated, Joomla sees it on the next
+"Check for Updates" immediately; a new version is announced without re-releasing the feed.
+
+The only release asset is the package zip (`cblogin-modern-blue.zip`) that `update.xml`
+points its `<downloadurl>` at. The feed is a tracked repo file, so it is always up to date.
+
+The installer's postflight (`repairUpdateSite`) rewrites/enables the update site to this raw
+URL on every install/upgrade, so stale per-version feed URLs self-heal.
 
 ## Behaviour
 
@@ -101,7 +107,8 @@ safely skips avatar rendering.
 | 1.3.0 | Added CB forgot-login page theming (com_comprofiler override) + update.xml |
 | 1.3.1 | Avatar + display name via CB API (no direct DB query — CB always loaded for this module) |
 | 1.3.5 | Externalize CSS/JS; random_bytes() IDs; avatar URL sanitization; unique form IDs; try/catch around CB API |
-| 1.3.6 | Update feed moved off GitHub Pages to a GitHub release asset (`releases/latest/download/update.xml`) — no CDN caching |
+| 1.3.6 | Update feed moved off GitHub Pages to the GitHub release asset (`releases/latest/download/update.xml`) |
+| 1.3.7 | Update feed now served directly from the repo's tracked `update.xml` on raw.githubusercontent.com — 200, no release-asset redirect, no CDN; no release needed to announce a new version |
 
 ## License
 
