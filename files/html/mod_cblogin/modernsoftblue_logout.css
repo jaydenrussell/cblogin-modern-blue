@@ -1,6 +1,6 @@
 /* CB Login — Modern Soft Blue logout state styles
  * Scoped to .scc-modern-blue container (class-based, cacheable).
- * @version 1.3.9 */
+ * @version 1.3.10 */
 .scc-modern-blue .scc-card {
   background:#ffffff;
   border:1px solid #e3ebf5;
@@ -79,3 +79,24 @@
   transition:background .15s;
 }
 .scc-modern-blue .scc-logout-btn:hover { background:#157bb3; }
+
+/* Mobile: tighter margins/padding so the card, greeting and avatar stay at a
+ * readable size on small screens. Avatar stays a static 48px (image). */
+@media (max-width: 480px) {
+  .scc-modern-blue .scc-card {
+    padding:.7rem .9rem .95rem .9rem;
+  }
+  .scc-modern-blue .scc-card-title {
+    font-size:.95rem;
+    padding:0 0 .45rem 0;
+  }
+  .scc-modern-blue .scc-header-avatar {
+    margin-top:-3rem;
+    margin-left:-.5rem;
+  }
+  .scc-modern-blue .scc-last-login {
+    font-size:.68rem;
+    margin-top:.25rem;
+  }
+  .scc-modern-blue .scc-logout-form { margin-top:.5rem; }
+}

@@ -5,7 +5,7 @@
  * Install: templates/tpl_jdseattle/html/mod_cblogin/modernsoftblue.php
  * Select:   Module → Advanced tab → Module Layout = "Modern Soft Blue"
  *
- * @version 1.3.9
+ * @version 1.3.10
  */
 defined('_JEXEC') or die;
 

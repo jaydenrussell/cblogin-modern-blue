@@ -111,6 +111,7 @@ safely skips avatar rendering.
 | 1.3.7 | Update feed now served directly from the repo's tracked `update.xml` on raw.githubusercontent.com — 200, no release-asset redirect, no CDN; no release needed to announce a new version |
 | 1.3.8 | Logout header: greeting + name on one line; avatar pops out of the top-right rounded card corner (unchanged 48px) |
 | 1.3.9 | Logout avatar: position via negative rem margins (margin-top:-4rem; margin-left:-1rem) instead of top/right px offsets; revert extra card padding |
+| 1.3.10 | Mobile (<480px): tighter margins/padding on logout card; avatar negative margins reduced; static 48px avatar kept |
 
 ## License
 
