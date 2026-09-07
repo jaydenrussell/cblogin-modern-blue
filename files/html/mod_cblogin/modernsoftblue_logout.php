@@ -1,6 +1,6 @@
 <?php
 /**
- * CB Login — Modern Soft Blue layout override (logged-in / logout state) v1.3.7
+ * CB Login — Modern Soft Blue layout override (logged-in / logout state) v1.3.8
  * ---------------------------------------------------------------------------
  * Shows: avatar in header, "Welcome, [name]" header as hyperlink to profile,
  * last login timestamp, + logout button.
@@ -9,7 +9,7 @@
  * getField). This override only runs inside the CB Login module, so CB's full
  * API + fieldtype renderer are always available — no direct DB query needed.
  *
- * @version 1.3.7
+ * @version 1.3.8
  */
 defined('_JEXEC') or die;
 
@@ -107,8 +107,8 @@ echo '<link rel="stylesheet" href="' . htmlspecialchars($cssUrl, ENT_COMPAT, 'UT
     <div class="scc-header">
       <div class="scc-header-text">
         <h3 class="scc-card-title">
-          <a href="<?php echo $escProfile; ?>" style="color:#15324a;text-decoration:none;">
-            <span class="scc-greeting">Welcome<?php echo $displayName ? ',' : ''; ?></span><span class="scc-name"><?php echo $displayName ? $escName : ''; ?></span>
+          <a href="<?php echo $escProfile; ?>">
+            <span class="scc-greeting">Welcome<?php echo $displayName ? ',' : ''; ?>&nbsp;</span><span class="scc-name"><?php echo $displayName ? $escName : ''; ?></span>
           </a>
         </h3>
       </div>
