@@ -5,7 +5,7 @@
  * Install: templates/tpl_jdseattle/html/mod_cblogin/modernsoftblue.php
  * Select:   Module → Advanced tab → Module Layout = "Modern Soft Blue"
  *
- * @version 1.3.11
+ * @version 1.3.12
  */
 defined('_JEXEC') or die;
 
@@ -17,7 +17,9 @@ if (is_file(__DIR__ . '/cbmenu.php'))
 }
 $cbMenuResolver = class_exists('SccCbMenuResolver') ? SccCbMenuResolver::instance() : null;
 
-$scc_id = 'scc' . bin2hex(random_bytes(8));
+// DOM id seed: random_bytes (PHP 7+); Joomla's own PRNG as a fallback so
+// legacy PHP 5.x shared hosts (still common with Joomla 3) do not fatal.
+$scc_id = 'scc' . bin2hex(function_exists('random_bytes') ? random_bytes(8) : JUserHelper::genRandomPassword(8));
 $styleUsername = (string) $params->get('style_username_cssclass', '');
 $stylePassword = (string) $params->get('style_password_cssclass', '');
 $styleLoginBtn = (string) $params->get('style_login_cssclass', '');
@@ -62,6 +64,9 @@ $escLoginBtn = htmlspecialchars($styleLoginBtn, ENT_COMPAT, 'UTF-8');
 $escForgot   = htmlspecialchars($styleForgot, ENT_COMPAT, 'UTF-8');
 $escRegister = htmlspecialchars($styleRegister, ENT_COMPAT, 'UTF-8');
 $escReturn   = htmlspecialchars($encodedReturn, ENT_COMPAT, 'UTF-8');
+$escLoginAction = htmlspecialchars($loginAction, ENT_COMPAT, 'UTF-8');
+$escForgotUrl   = htmlspecialchars($forgotUrl, ENT_COMPAT, 'UTF-8');
+$escRegisterUrl = htmlspecialchars($registerUrl, ENT_COMPAT, 'UTF-8');
 
 // Enqueue external CSS (cacheable).
 $tplPath = 'templates/' . JFactory::getApplication()->getTemplate();
@@ -78,7 +83,7 @@ echo '<script src="' . htmlspecialchars($jsUrl, ENT_COMPAT, 'UTF-8') . '"></scri
       <h3 class="scc-card-title"><?php echo $escTitle; ?></h3>
     <?php endif; ?>
 
-    <form action="<?php echo $loginAction; ?>"
+    <form action="<?php echo $escLoginAction; ?>"
           method="post" id="<?php echo $scc_id; ?>-login-form" class="scc-login-form" name="loginform">
       <input type="hidden" name="option" value="com_comprofiler" />
       <input type="hidden" name="view" value="login" />
@@ -138,7 +143,7 @@ echo '<script src="' . htmlspecialchars($jsUrl, ENT_COMPAT, 'UTF-8') . '"></scri
       <!-- Actions: Forgot Login (left) + Log in button (right) -->
       <div class="scc-action-row">
         <?php if ($showForgot): ?>
-          <a href="<?php echo $forgotUrl; ?>" class="<?php echo $escForgot; ?>">Forgot Login?</a>
+          <a href="<?php echo $escForgotUrl; ?>" class="<?php echo $escForgot; ?>">Forgot Login?</a>
         <?php endif; ?>
         <button type="submit" name="Submit" class="scc-login-btn <?php echo $escLoginBtn; ?>">Log in</button>
       </div>
@@ -147,7 +152,7 @@ echo '<script src="' . htmlspecialchars($jsUrl, ENT_COMPAT, 'UTF-8') . '"></scri
       <div class="scc-divider">New to SCC?</div>
       <?php if ($showRegister): ?>
         <div class="scc-login-links">
-          <a href="<?php echo $registerUrl; ?>" class="<?php echo $escRegister; ?>">Sign up</a>
+          <a href="<?php echo $escRegisterUrl; ?>" class="<?php echo $escRegister; ?>">Sign up</a>
         </div>
       <?php endif; ?>
     </form>

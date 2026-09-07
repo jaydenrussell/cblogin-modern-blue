@@ -1,0 +1,23 @@
+name: php-check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-version: ['5.6', '7.4', '8.1']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          coverage: none
+      - name: Lint all PHP files
+        run: |
+          find . -name '*.php' -not -path './vendor/*' | while read -r f; do php -l "$f" >/dev/null || exit 1; done
+      - name: Resolver stub harness
+        run: php tests/cbmenu_resolver_harness.php

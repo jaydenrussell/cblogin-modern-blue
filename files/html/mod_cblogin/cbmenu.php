@@ -14,7 +14,7 @@
  * The Joomla #__menu table is the single source of truth here — exactly the
  * records JMenu serves, so the Joomla menu system decides what is canonical.
  *
- * @version 1.3.11
+ * @version 1.3.12
  */
 defined('_JEXEC') or die;
 
@@ -26,6 +26,11 @@ if (!class_exists('SccCbMenuResolver'))
 class SccCbMenuResolver
 {
 	protected static $instance = null;
+
+	// Per-request cache of raw #__menu rows, keyed by option + authorised view
+	// levels. The menu system is effectively static within a request; caching
+	// prevents repeated full-table scans on busy/cheap hosts.
+	protected static $itemCache = array();
 
 	/**
 	 * Singleton.
@@ -102,19 +107,33 @@ class SccCbMenuResolver
 	 */
 	protected function menuItemById($id, $levels, $option)
 	{
-		$db = JFactory::getDbo();
-		$q  = $db->getQuery(true)
-			->select(array('id', 'title', 'link', 'access', 'published'))
-			->from('#__menu')
-			->where('id = ' . (int) $id)
-			->where('client_id = 0')
-			->where('published = 1')
-			->where('type = ' . $db->q('component'))
-			->where('link LIKE ' . $db->q('index.php?option=' . $option . '%'));
-		$db->setQuery($q);
-		$item = $db->loadObject();
+		if ((int) $id <= 0)
+		{
+			return null;
+		}
 
-		if (!$item || !in_array((int) $item->access, $levels))
+		try
+		{
+			$db = JFactory::getDbo();
+			$q  = $db->getQuery(true)
+				->select(array('id', 'title', 'link', 'access', 'published'))
+				->from('#__menu')
+				->where('id = ' . (int) $id)
+				->where('client_id = 0')
+				->where('published = 1')
+				->where('type = ' . $db->q('component'))
+				->where('link LIKE ' . $db->q('index.php?option=' . $option . '%'));
+			$db->setQuery($q);
+			$item = $db->loadObject();
+		}
+		catch (Exception $e)
+		{
+			// DB failure (drop / corruption / lock) must not white-screen the
+			// module — treat as "no item found" and fall through.
+			return null;
+		}
+
+		if (!$item || !$this->hasOption($item, $option) || !in_array((int) $item->access, $levels))
 		{
 			return null;
 		}
@@ -132,21 +151,39 @@ class SccCbMenuResolver
 	 */
 	protected function menuItemsForOption($option, $levels)
 	{
-		$db = JFactory::getDbo();
-		$q  = $db->getQuery(true)
-			->select(array('id', 'title', 'link', 'access', 'published'))
-			->from('#__menu')
-			->where('client_id = 0')
-			->where('published = 1')
-			->where('type = ' . $db->q('component'))
-			->where('link LIKE ' . $db->q('index.php?option=' . $option . '%'))
-			->order('access ASC, id ASC');
-		$db->setQuery($q);
+		// One canonical scan per option + auth-level tuple per request. The
+		// Joomla menu system is effectively static within a request, so caching
+		// raw rows here cuts repeated full #__menu scans on cheap hosts.
+		$key = $option . '|' . implode(',', array_map('intval', (array) $levels));
+
+		if (!isset(self::$itemCache[$key]))
+		{
+			try
+			{
+				$db = JFactory::getDbo();
+				$q  = $db->getQuery(true)
+					->select(array('id', 'title', 'link', 'access', 'published'))
+					->from('#__menu')
+					->where('client_id = 0')
+					->where('published = 1')
+					->where('type = ' . $db->q('component'))
+					->where('link LIKE ' . $db->q('index.php?option=' . $option . '%'))
+					->order('access ASC, id ASC');
+				$db->setQuery($q);
+				self::$itemCache[$key] = (array) $db->loadObjectList();
+			}
+			catch (Exception $e)
+			{
+				// DB failure (drop / corruption / lock) must not white-screen
+				// the module — fall through to routed-URL fallbacks.
+				self::$itemCache[$key] = array();
+			}
+		}
 
 		$out = array();
-		foreach ((array) $db->loadObjectList() as $item)
+		foreach (self::$itemCache[$key] as $item)
 		{
-			if (in_array((int) $item->access, $levels))
+			if ($this->hasOption($item, $option) && in_array((int) $item->access, $levels))
 			{
 				$out[] = $item;
 			}
@@ -165,9 +202,8 @@ class SccCbMenuResolver
 	 */
 	protected function matches($item, $option, $view)
 	{
-		return $item && !empty($item->link)
-			&& strpos($item->link, 'option=' . $option) !== false
-			&& ($view === '' || strpos($item->link, 'view=' . $view) !== false);
+		return $this->hasOption($item, $option)
+			&& ($view === '' || $this->hasView($item, $view));
 	}
 
 	/**
@@ -179,7 +215,23 @@ class SccCbMenuResolver
 	 */
 	protected function hasView($item, $view)
 	{
-		return $item && !empty($item->link) && strpos($item->link, 'view=' . $view) !== false;
+		return $item && !empty($item->link)
+			&& preg_match('/view=' . preg_quote($view, '/') . '(?:&|$)/', $item->link) === 1;
+	}
+
+	/**
+	 * Does a menu item link point at the component? The option token is
+	 * boundary-matched (& or end-of-query) so a similarly-named component
+	 * (e.g. com_comprofiler_x) is never treated as com_comprofiler.
+	 *
+	 * @param object|null $item
+	 * @param string      $option
+	 * @return bool
+	 */
+	protected function hasOption($item, $option)
+	{
+		return $item && !empty($item->link)
+			&& preg_match('/option=' . preg_quote($option, '/') . '(?:&|$)/', $item->link) === 1;
 	}
 
 	/**

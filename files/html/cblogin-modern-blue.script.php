@@ -12,7 +12,7 @@
  *     matched — never a broad substring — so unrelated extensions are never
  *     hijacked or force-enabled.
  *
- * @version 1.3.11
+ * @version 1.3.12
  */
 defined('_JEXEC') or die;
 

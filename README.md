@@ -127,6 +127,18 @@ safely skips avatar rendering.
 | 1.3.9 | Logout avatar: position via negative rem margins (margin-top:-4rem; margin-left:-1rem) instead of top/right px offsets; revert extra card padding |
 | 1.3.10 | Mobile (<480px): tighter margins/padding on logout card; avatar negative margins reduced; static 48px avatar kept |
 | 1.3.11 | Shared `cbmenu.php` URL resolver: canonical CB menu routes (no hardcoded aliases/`/component/com_comprofiler/`), optional `profile_itemid`/`forgot_login_itemid`, used by login + logout overrides |
+| 1.3.12 | Production hardening: PHP 5.x id-seed fallback (`random_bytes` guard) + manifest PHP/Joomla minimums; resolver DB failures fall back to routed URLs instead of white-screening; per-request memoized `#__menu` scans; option/view boundary matching; escaped URL output; stub-based resolver test harness + CI |
+
+## Tests
+
+`tests/cbmenu_resolver_harness.php` stubs `JFactory`/`JRoute` and a fake
+`#__menu` so the resolver's matching, access filtering, memoization and
+DB-failure fallbacks run **without a Joomla install**:
+
+    php tests/cbmenu_resolver_harness.php
+
+CI (`.github/workflows/php.yml`) lints every PHP file and runs the harness on
+PHP 5.6 / 7.4 / 8.1.
 
 ## License
 

@@ -1,6 +1,6 @@
 <?php
 /**
- * CB Login — Modern Soft Blue layout override (logged-in / logout state) v1.3.11
+ * CB Login — Modern Soft Blue layout override (logged-in / logout state) v1.3.12
  * ---------------------------------------------------------------------------
  * Shows: avatar in header, "Welcome, [name]" header as hyperlink to profile,
  * last login timestamp, + logout button.
@@ -9,7 +9,7 @@
  * getField). This override only runs inside the CB Login module, so CB's full
  * API + fieldtype renderer are always available — no direct DB query needed.
  *
- * @version 1.3.11
+ * @version 1.3.12
  */
 defined('_JEXEC') or die;
 
@@ -21,7 +21,9 @@ if (is_file(__DIR__ . '/cbmenu.php'))
 }
 $cbMenuResolver = class_exists('SccCbMenuResolver') ? SccCbMenuResolver::instance() : null;
 
-$scc_id = 'scc' . bin2hex(random_bytes(8));
+// DOM id seed: random_bytes (PHP 7+); Joomla's own PRNG as a fallback so
+// legacy PHP 5.x shared hosts (still common with Joomla 3) do not fatal.
+$scc_id = 'scc' . bin2hex(function_exists('random_bytes') ? random_bytes(8) : JUserHelper::genRandomPassword(8));
 $user = JFactory::getUser();
 
 $avatarUrl     = '';
@@ -110,6 +112,7 @@ $escAvatar    = htmlspecialchars($avatarUrl, ENT_COMPAT, 'UTF-8');
 $escLastTxt   = htmlspecialchars($lastLoginTxt, ENT_COMPAT, 'UTF-8');
 $escLastHtml  = htmlspecialchars($lastLoginHtml, ENT_COMPAT, 'UTF-8');
 $escProfile   = htmlspecialchars($profileUrl, ENT_COMPAT, 'UTF-8');
+$escLogoutAction = htmlspecialchars($logoutAction, ENT_COMPAT, 'UTF-8');
 
 // Enqueue external CSS (cacheable).
 $tplPath = 'templates/' . JFactory::getApplication()->getTemplate();
@@ -147,7 +150,7 @@ echo '<link rel="stylesheet" href="' . htmlspecialchars($cssUrl, ENT_COMPAT, 'UT
     <?php endif; ?>
 
     <!-- Logout button -->
-    <form action="<?php echo $logoutAction; ?>" method="post" class="scc-logout-form">
+    <form action="<?php echo $escLogoutAction; ?>" method="post" class="scc-logout-form">
       <?php echo JHtml::_('form.token'); ?>
       <button type="submit" class="scc-logout-btn">Logout</button>
     </form>
