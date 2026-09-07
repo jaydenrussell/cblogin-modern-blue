@@ -34,12 +34,26 @@ pkg_cblogin-modern-blue.xml   # package manifest (type=package)
 update.xml                    # update feed; hosted directly in the GitHub repo (NO release asset)
 files/sccfiles.xml            # inner file-extension manifest (target = template html/)
 files/html/mod_cblogin/
+├── cbmenu.php                    # Shared CB menu URL resolver (canonical SEF routes)
 ├── modernsoftblue.php            # Logged-OUT state: styled login form
 ├── modernsoftblue_logout.php     # Logged-IN state: avatar + welcome name + logout
 ├── modernsoftblue.css            # Externalized login styles (cacheable)
 ├── modernsoftblue_logout.css     # Externalized logout styles (cacheable)
 └── modernsoftblue.js             # Externalized password-toggle JS (cacheable)
 ```
+
+## URL resolution
+
+Profile / edit-profile / forgot-login / login / logout links are **not** built from
+hardcoded aliases (`cb-profile`, etc.) or raw `/component/com_comprofiler/` URLs. The
+shared `cbmenu.php` helper (`SccCbMenuResolver`) finds the canonical public CB menu item
+from the Joomla menu system (`#__menu`) by component/view — or honours an explicitly
+configured `Itemid` — then emits SEF URLs through `JRoute::_()` with that `Itemid`. Custom
+CB menu aliases keep working without code changes, and one route stays canonical.
+
+Optional module params that are read when present:
+- `profile_itemid` — canonical CB profile menu item id (auto-discovered if 0)
+- `forgot_login_itemid` — canonical CB forgot-login menu item id (auto-discovered if 0)
 
 ## Update feed
 
@@ -112,6 +126,7 @@ safely skips avatar rendering.
 | 1.3.8 | Logout header: greeting + name on one line; avatar pops out of the top-right rounded card corner (unchanged 48px) |
 | 1.3.9 | Logout avatar: position via negative rem margins (margin-top:-4rem; margin-left:-1rem) instead of top/right px offsets; revert extra card padding |
 | 1.3.10 | Mobile (<480px): tighter margins/padding on logout card; avatar negative margins reduced; static 48px avatar kept |
+| 1.3.11 | Shared `cbmenu.php` URL resolver: canonical CB menu routes (no hardcoded aliases/`/component/com_comprofiler/`), optional `profile_itemid`/`forgot_login_itemid`, used by login + logout overrides |
 
 ## License
 

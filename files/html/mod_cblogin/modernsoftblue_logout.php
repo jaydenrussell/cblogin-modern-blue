@@ -1,6 +1,6 @@
 <?php
 /**
- * CB Login — Modern Soft Blue layout override (logged-in / logout state) v1.3.10
+ * CB Login — Modern Soft Blue layout override (logged-in / logout state) v1.3.11
  * ---------------------------------------------------------------------------
  * Shows: avatar in header, "Welcome, [name]" header as hyperlink to profile,
  * last login timestamp, + logout button.
@@ -9,9 +9,17 @@
  * getField). This override only runs inside the CB Login module, so CB's full
  * API + fieldtype renderer are always available — no direct DB query needed.
  *
- * @version 1.3.10
+ * @version 1.3.11
  */
 defined('_JEXEC') or die;
+
+// Shared CB menu resolver (optional): canonical SEF routes resolved from the
+// Joomla menu system — no hardcoded aliases like "cb-profile".
+if (is_file(__DIR__ . '/cbmenu.php'))
+{
+	require_once __DIR__ . '/cbmenu.php';
+}
+$cbMenuResolver = class_exists('SccCbMenuResolver') ? SccCbMenuResolver::instance() : null;
 
 $scc_id = 'scc' . bin2hex(random_bytes(8));
 $user = JFactory::getUser();
@@ -22,10 +30,20 @@ $showAvatar    = $params->get('show_avatar', 1);
 $showLastLogin = $params->get('show_last_login', 1);
 $lastLoginTxt  = (string) $params->get('text_last_login', 'Last login');
 
-// Profile / profile-edit links: build local routes with the CB Itemid so the
-// links work regardless of SEF/menu setup. NO hardcoded domain.
-$profileItemid  = (int) $params->get('profile_itemid', 0);
-$profileUrl     = JRoute::_('index.php?option=com_comprofiler&view=userprofile' . ($profileItemid ? '&Itemid=' . $profileItemid : ''), false);
+// Profile / profile-edit links: canonical CB menu route (auto-discovered via
+// the Joomla menu system, or the configured Itemid if set). NO hardcoded alias
+// or /component/com_comprofiler/ URL — SEF routes built from the menu Itemid.
+$profileItemid = (int) $params->get('profile_itemid', 0);
+if ($cbMenuResolver)
+{
+	$profileUrl   = $cbMenuResolver->getProfileUrl((int) $user->id, $profileItemid);
+	$logoutAction = $cbMenuResolver->getLogoutUrl();
+}
+else
+{
+	$profileUrl   = JRoute::_('index.php?option=com_comprofiler&view=userprofile' . ($profileItemid ? '&Itemid=' . $profileItemid : ''), false);
+	$logoutAction = JRoute::_('index.php?option=com_comprofiler&view=logout&task=logout', false);
+}
 
 // --- Display name + Avatar via CB API (single getInstance call) ---
 if (class_exists('CBuser') && !$user->guest) {
@@ -85,9 +103,6 @@ if ($showLastLogin) {
         $lastLoginHtml = 'Never logged in';
     }
 }
-
-// --- Logout (route carries the return + token; CSRF-protected by CB) ---
-$logoutAction = JRoute::_('index.php?option=com_comprofiler&view=logout&task=logout', false);
 
 // Escape output once.
 $escName      = htmlspecialchars($displayName, ENT_COMPAT, 'UTF-8');
