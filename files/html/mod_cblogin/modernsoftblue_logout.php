@@ -1,6 +1,6 @@
 <?php
 /**
- * CB Login — Modern Soft Blue layout override (logged-in / logout state) v1.3.13
+ * CB Login — Modern Soft Blue layout override (logged-in / logout state) v1.3.14
  * ---------------------------------------------------------------------------
  * Shows: avatar in header, "Welcome, [name]" header as hyperlink to profile,
  * last login timestamp, + logout button.
@@ -9,7 +9,7 @@
  * getField). This override only runs inside the CB Login module, so CB's full
  * API + fieldtype renderer are always available — no direct DB query needed.
  *
- * @version 1.3.13
+ * @version 1.3.14
  */
 defined('_JEXEC') or die;
 
@@ -47,9 +47,11 @@ else
 	$logoutAction = JRoute::_('index.php?option=com_comprofiler&view=logout&task=logout', false);
 }
 
-// Return URL: base64-encoded. Honour the module's CB "Logout Redirection URL"
-// (logout_redirection_url) exactly like CB's own default layout does; the
-// current-page fallback stays same-origin + root-relative.
+// Return URL: CB native protocol ("B:" + base64). Honour the module's CB
+// "Logout Redirection URL" param (key: 'logout' — per mod_cblogin.php) exactly
+// like CB's own default layout does: '#' → reload current page; blank or
+// 'index.php' → home-page; otherwise an explicit URL. The current-page
+// fallback stays same-origin + root-relative.
 $returnUrl = JUri::getInstance()->toString();
 $returnPath = parse_url($returnUrl, PHP_URL_PATH);
 $returnQuery = parse_url($returnUrl, PHP_URL_QUERY);
@@ -58,7 +60,17 @@ if ($returnQuery !== '' && $returnQuery !== false && $returnQuery !== null) {
     $safeReturn .= '?' . $returnQuery;
 }
 
-$logoutRedirect = trim((string) $params->get('logout_redirection_url', ''));
+$logoutRedirect = trim((string) $params->get('logout', 'index.php'));
+if ($logoutRedirect === '#')
+{
+    // Double-cross: reload current page (CB semantics).
+    $logoutRedirect = '';
+}
+elseif ($logoutRedirect === '' || strcasecmp($logoutRedirect, 'index.php') === 0)
+{
+    // Blank or 'index.php': go to home-page (CB semantics).
+    $logoutRedirect = 'index.php';
+}
 if ($logoutRedirect !== '' && preg_match('#^([a-z][a-z0-9+.\-]*):#i', $logoutRedirect, $schemeMatch))
 {
     // Absolute URL: http(s) only. Anything else (javascript:, data:, ...) is
@@ -73,7 +85,8 @@ elseif ($logoutRedirect !== '')
     // No scheme: root-relative (/...) or non-SEF (index.php?...) — safe.
     $safeReturn = $logoutRedirect;
 }
-$encodedLogoutReturn = base64_encode($safeReturn);
+// CB's logout handler expects the module's native "B:" prefix + base64 wrapper.
+$encodedLogoutReturn = 'B:' . base64_encode($safeReturn);
 
 // --- Display name + Avatar via CB API (single getInstance call) ---
 if (class_exists('CBuser') && !$user->guest) {

@@ -14,7 +14,7 @@
  * The Joomla #__menu table is the single source of truth here — exactly the
  * records JMenu serves, so the Joomla menu system decides what is canonical.
  *
- * @version 1.3.13
+ * @version 1.3.14
  */
 defined('_JEXEC') or die;
 

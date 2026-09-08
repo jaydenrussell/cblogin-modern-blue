@@ -128,7 +128,8 @@ safely skips avatar rendering.
 | 1.3.10 | Mobile (<480px): tighter margins/padding on logout card; avatar negative margins reduced; static 48px avatar kept |
 | 1.3.11 | Shared `cbmenu.php` URL resolver: canonical CB menu routes (no hardcoded aliases/`/component/com_comprofiler/`), optional `profile_itemid`/`forgot_login_itemid`, used by login + logout overrides |
 | 1.3.12 | Production hardening: PHP 5.x id-seed fallback (`random_bytes` guard) + manifest PHP/Joomla minimums; resolver DB failures fall back to routed URLs instead of white-screening; per-request memoized `#__menu` scans; option/view boundary matching; escaped URL output; stub-based resolver test harness + CI |
-| 1.3.13 | CB Login module "Login Redirection URL" / "Logout Redirection URL" params now honored (CB `login_redirection_url` / `logout_redirection_url` go into the form's `return` fragment exactly like CB's default layout; safe scheme validation; current-page fallback) |
+| 1.3.13 | First (inactive) attempt at honoring the CB redirect params — used guessed keys `login_redirection_url` / `logout_redirection_url`, which do not exist in `mod_cblogin`; no functional effect, superseded by 1.3.14 |
+| 1.3.14 | **Fix:** CB redirect params actually honored. Real `mod_cblogin` keys are `login` (Login Redirection URL) and `logout` (Logout Redirection URL); values are emitted as CB's native `B:` + base64 `return` fragment exactly like CB's default layout (blank login → current page; logout `#` → current page, blank/`index.php` → home; safe scheme validation) |
 
 ## Tests
 
