@@ -1,6 +1,6 @@
 <?php
 /**
- * CB Login — Modern Soft Blue layout override (logged-in / logout state) v1.3.12
+ * CB Login — Modern Soft Blue layout override (logged-in / logout state) v1.3.13
  * ---------------------------------------------------------------------------
  * Shows: avatar in header, "Welcome, [name]" header as hyperlink to profile,
  * last login timestamp, + logout button.
@@ -9,7 +9,7 @@
  * getField). This override only runs inside the CB Login module, so CB's full
  * API + fieldtype renderer are always available — no direct DB query needed.
  *
- * @version 1.3.12
+ * @version 1.3.13
  */
 defined('_JEXEC') or die;
 
@@ -46,6 +46,34 @@ else
 	$profileUrl   = JRoute::_('index.php?option=com_comprofiler&view=userprofile' . ($profileItemid ? '&Itemid=' . $profileItemid : ''), false);
 	$logoutAction = JRoute::_('index.php?option=com_comprofiler&view=logout&task=logout', false);
 }
+
+// Return URL: base64-encoded. Honour the module's CB "Logout Redirection URL"
+// (logout_redirection_url) exactly like CB's own default layout does; the
+// current-page fallback stays same-origin + root-relative.
+$returnUrl = JUri::getInstance()->toString();
+$returnPath = parse_url($returnUrl, PHP_URL_PATH);
+$returnQuery = parse_url($returnUrl, PHP_URL_QUERY);
+$safeReturn = '/' . ltrim((string) $returnPath, '/');
+if ($returnQuery !== '' && $returnQuery !== false && $returnQuery !== null) {
+    $safeReturn .= '?' . $returnQuery;
+}
+
+$logoutRedirect = trim((string) $params->get('logout_redirection_url', ''));
+if ($logoutRedirect !== '' && preg_match('#^([a-z][a-z0-9+.\-]*):#i', $logoutRedirect, $schemeMatch))
+{
+    // Absolute URL: http(s) only. Anything else (javascript:, data:, ...) is
+    // rejected and the current-page fallback is used.
+    if (in_array(strtolower($schemeMatch[1]), array('http', 'https'), true))
+    {
+        $safeReturn = $logoutRedirect;
+    }
+}
+elseif ($logoutRedirect !== '')
+{
+    // No scheme: root-relative (/...) or non-SEF (index.php?...) — safe.
+    $safeReturn = $logoutRedirect;
+}
+$encodedLogoutReturn = base64_encode($safeReturn);
 
 // --- Display name + Avatar via CB API (single getInstance call) ---
 if (class_exists('CBuser') && !$user->guest) {
@@ -113,6 +141,7 @@ $escLastTxt   = htmlspecialchars($lastLoginTxt, ENT_COMPAT, 'UTF-8');
 $escLastHtml  = htmlspecialchars($lastLoginHtml, ENT_COMPAT, 'UTF-8');
 $escProfile   = htmlspecialchars($profileUrl, ENT_COMPAT, 'UTF-8');
 $escLogoutAction = htmlspecialchars($logoutAction, ENT_COMPAT, 'UTF-8');
+$escLogoutReturn = htmlspecialchars($encodedLogoutReturn, ENT_COMPAT, 'UTF-8');
 
 // Enqueue external CSS (cacheable).
 $tplPath = 'templates/' . JFactory::getApplication()->getTemplate();
@@ -152,6 +181,7 @@ echo '<link rel="stylesheet" href="' . htmlspecialchars($cssUrl, ENT_COMPAT, 'UT
     <!-- Logout button -->
     <form action="<?php echo $escLogoutAction; ?>" method="post" class="scc-logout-form">
       <?php echo JHtml::_('form.token'); ?>
+      <input type="hidden" name="return" value="<?php echo $escLogoutReturn; ?>" />
       <button type="submit" class="scc-logout-btn">Logout</button>
     </form>
   </section>

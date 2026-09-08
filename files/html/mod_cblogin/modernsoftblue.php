@@ -5,7 +5,7 @@
  * Install: templates/tpl_jdseattle/html/mod_cblogin/modernsoftblue.php
  * Select:   Module → Advanced tab → Module Layout = "Modern Soft Blue"
  *
- * @version 1.3.12
+ * @version 1.3.13
  */
 defined('_JEXEC') or die;
 
@@ -45,14 +45,32 @@ else
 	$loginAction = JRoute::_('index.php?option=com_comprofiler&view=login&op2=login', false);
 }
 
-// Return URL: restrict to same-origin root-relative path (CB convention requires
-// a base64-encoded value). Root-relative-only makes an open redirect impossible.
+// Return URL: base64-encoded. Honour the module's CB "Login Redirection URL"
+// (login_redirection_url) exactly like CB's own default layout does; the
+// current-page fallback stays same-origin + root-relative so no open redirect
+// is possible.
 $returnUrl = JUri::getInstance()->toString();
 $returnPath = parse_url($returnUrl, PHP_URL_PATH);
 $returnQuery = parse_url($returnUrl, PHP_URL_QUERY);
 $safeReturn = '/' . ltrim((string) $returnPath, '/');
 if ($returnQuery !== '' && $returnQuery !== false && $returnQuery !== null) {
     $safeReturn .= '?' . $returnQuery;
+}
+
+$loginRedirect = trim((string) $params->get('login_redirection_url', ''));
+if ($loginRedirect !== '' && preg_match('#^([a-z][a-z0-9+.\-]*):#i', $loginRedirect, $schemeMatch))
+{
+    // Absolute URL: http(s) only. Anything else (javascript:, data:,
+    // vbscript:, ...) is rejected and the current-page fallback is used.
+    if (in_array(strtolower($schemeMatch[1]), array('http', 'https'), true))
+    {
+        $safeReturn = $loginRedirect;
+    }
+}
+elseif ($loginRedirect !== '')
+{
+    // No scheme: root-relative (/cb-profile) or non-SEF (index.php?...) — safe.
+    $safeReturn = $loginRedirect;
 }
 $encodedReturn = base64_encode($safeReturn);
 
