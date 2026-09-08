@@ -130,6 +130,7 @@ safely skips avatar rendering.
 | 1.3.12 | Production hardening: PHP 5.x id-seed fallback (`random_bytes` guard) + manifest PHP/Joomla minimums; resolver DB failures fall back to routed URLs instead of white-screening; per-request memoized `#__menu` scans; option/view boundary matching; escaped URL output; stub-based resolver test harness + CI |
 | 1.3.13 | First (inactive) attempt at honoring the CB redirect params — used guessed keys `login_redirection_url` / `logout_redirection_url`, which do not exist in `mod_cblogin`; no functional effect, superseded by 1.3.14 |
 | 1.3.14 | **Fix:** CB redirect params actually honored. Real `mod_cblogin` keys are `login` (Login Redirection URL) and `logout` (Logout Redirection URL); values are emitted as CB's native `B:` + base64 `return` fragment exactly like CB's default layout (blank login → current page; logout `#` → current page, blank/`index.php` → home; safe scheme validation) |
+| 1.3.15 | **Fix:** login/logout redirects now actually redirect. CB 2.x whitelists the posted `return` to `live_site`- or `index.php`-prefixed URLs and silently discards bare root-relative aliases (e.g. `/cb-profile` → homepage). The layouts now run the target through CB's `cbSef()` (like native `mod_cblogin`) so the encoded value is absolute and passes the whitelist |
 
 ## Tests
 

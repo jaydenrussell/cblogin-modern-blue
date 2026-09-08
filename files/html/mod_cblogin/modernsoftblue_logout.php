@@ -1,6 +1,6 @@
 <?php
 /**
- * CB Login — Modern Soft Blue layout override (logged-in / logout state) v1.3.14
+ * CB Login — Modern Soft Blue layout override (logged-in / logout state) v1.3.15
  * ---------------------------------------------------------------------------
  * Shows: avatar in header, "Welcome, [name]" header as hyperlink to profile,
  * last login timestamp, + logout button.
@@ -9,7 +9,7 @@
  * getField). This override only runs inside the CB Login module, so CB's full
  * API + fieldtype renderer are always available — no direct DB query needed.
  *
- * @version 1.3.14
+ * @version 1.3.15
  */
 defined('_JEXEC') or die;
 
@@ -86,6 +86,17 @@ elseif ($logoutRedirect !== '')
     $safeReturn = $logoutRedirect;
 }
 // CB's logout handler expects the module's native "B:" prefix + base64 wrapper.
+// Native mod_cblogin runs the target through cbSef() first, which absolutizes
+// root-relative paths so the decoded return starts with live_site: CB 2.x
+// whitelists the posted return to ( live_site | index.php ) prefixes and
+// blanks "/cb-profile" (→ homepage). cbSef is loaded by mod_cblogin before
+// this layout renders, but fall back to the raw value if it is unavailable.
+if (function_exists('cbSef') && $safeReturn !== '') {
+    $sefReturn = cbSef($safeReturn, true, 'html', (int) $params->get('https_post', 0));
+    if (is_string($sefReturn) && $sefReturn !== '') {
+        $safeReturn = $sefReturn;
+    }
+}
 $encodedLogoutReturn = 'B:' . base64_encode($safeReturn);
 
 // --- Display name + Avatar via CB API (single getInstance call) ---

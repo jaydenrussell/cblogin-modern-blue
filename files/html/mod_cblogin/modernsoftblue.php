@@ -5,7 +5,7 @@
  * Install: templates/tpl_jdseattle/html/mod_cblogin/modernsoftblue.php
  * Select:   Module → Advanced tab → Module Layout = "Modern Soft Blue"
  *
- * @version 1.3.14
+ * @version 1.3.15
  */
 defined('_JEXEC') or die;
 
@@ -74,6 +74,17 @@ elseif ($loginRedirect !== '')
     $safeReturn = $loginRedirect;
 }
 // CB's login handler expects the module's native "B:" prefix + base64 wrapper.
+// Native mod_cblogin runs the target through cbSef() first, which absolutizes
+// root-relative paths so the decoded return starts with live_site: CB 2.x
+// whitelists the posted return to ( live_site | index.php ) prefixes and
+// blanks "/cb-profile" (→ homepage). cbSef is loaded by mod_cblogin before
+// this layout renders, but fall back to the raw value if it is unavailable.
+if (function_exists('cbSef') && $safeReturn !== '') {
+    $sefReturn = cbSef($safeReturn, true, 'html', (int) $params->get('https_post', 0));
+    if (is_string($sefReturn) && $sefReturn !== '') {
+        $safeReturn = $sefReturn;
+    }
+}
 $encodedReturn = 'B:' . base64_encode($safeReturn);
 
 // Escape all admin-controllable params once.
