@@ -5,7 +5,7 @@
  * Install: templates/tpl_jdseattle/html/mod_cblogin/modernsoftblue.php
  * Select:   Module → Advanced tab → Module Layout = "Modern Soft Blue"
  *
- * @version 1.3.15
+ * @version 1.3.16
  */
 defined('_JEXEC') or die;
 
@@ -99,13 +99,18 @@ $escLoginAction = htmlspecialchars($loginAction, ENT_COMPAT, 'UTF-8');
 $escForgotUrl   = htmlspecialchars($forgotUrl, ENT_COMPAT, 'UTF-8');
 $escRegisterUrl = htmlspecialchars($registerUrl, ENT_COMPAT, 'UTF-8');
 
-// Enqueue external CSS (cacheable).
-$tplPath = 'templates/' . JFactory::getApplication()->getTemplate();
-$cssUrl  = $tplPath . '/html/mod_cblogin/modernsoftblue.css';
+// Enqueue external CSS (cacheable). Root-absolute URL (JUri::root true): a
+// plain relative URL like "templates/..." resolves against the current page
+// path — on the homepage that is the site root, but on deeper routes (e.g.
+// /cb-profile/jaydenrussell) it becomes /cb-profile/templates/... → 404, so
+// the module renders unstyled ("default look"). Root-absolute works at any depth.
+$baseHref = JUri::root(true);
+$tplPath  = 'templates/' . JFactory::getApplication()->getTemplate();
+$cssUrl   = $baseHref . $tplPath . '/html/mod_cblogin/modernsoftblue.css';
 echo '<link rel="stylesheet" href="' . htmlspecialchars($cssUrl, ENT_COMPAT, 'UTF-8') . '" />';
 
 // Enqueue external JS (cacheable).
-$jsUrl = $tplPath . '/html/mod_cblogin/modernsoftblue.js';
+$jsUrl = $baseHref . $tplPath . '/html/mod_cblogin/modernsoftblue.js';
 echo '<script src="' . htmlspecialchars($jsUrl, ENT_COMPAT, 'UTF-8') . '"></script>';
 ?>
 <div class="scc-modern-blue" id="<?php echo $scc_id; ?>">

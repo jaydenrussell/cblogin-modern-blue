@@ -1,6 +1,6 @@
 <?php
 /**
- * CB Login — Modern Soft Blue layout override (logged-in / logout state) v1.3.15
+ * CB Login — Modern Soft Blue layout override (logged-in / logout state) v1.3.16
  * ---------------------------------------------------------------------------
  * Shows: avatar in header, "Welcome, [name]" header as hyperlink to profile,
  * last login timestamp, + logout button.
@@ -9,7 +9,7 @@
  * getField). This override only runs inside the CB Login module, so CB's full
  * API + fieldtype renderer are always available — no direct DB query needed.
  *
- * @version 1.3.15
+ * @version 1.3.16
  */
 defined('_JEXEC') or die;
 
@@ -167,9 +167,14 @@ $escProfile   = htmlspecialchars($profileUrl, ENT_COMPAT, 'UTF-8');
 $escLogoutAction = htmlspecialchars($logoutAction, ENT_COMPAT, 'UTF-8');
 $escLogoutReturn = htmlspecialchars($encodedLogoutReturn, ENT_COMPAT, 'UTF-8');
 
-// Enqueue external CSS (cacheable).
-$tplPath = 'templates/' . JFactory::getApplication()->getTemplate();
-$cssUrl  = $tplPath . '/html/mod_cblogin/modernsoftblue_logout.css';
+// Enqueue external CSS (cacheable). Root-absolute URL (JUri::root true): a
+// plain relative URL like "templates/..." resolves against the current page
+// path — on the homepage that is the site root, but on deeper routes (e.g.
+// /cb-profile/jaydenrussell) it becomes /cb-profile/templates/... → 404, so
+// the module renders unstyled ("default look"). Root-absolute works at any depth.
+$baseHref = JUri::root(true);
+$tplPath  = 'templates/' . JFactory::getApplication()->getTemplate();
+$cssUrl   = $baseHref . $tplPath . '/html/mod_cblogin/modernsoftblue_logout.css';
 echo '<link rel="stylesheet" href="' . htmlspecialchars($cssUrl, ENT_COMPAT, 'UTF-8') . '" />';
 ?>
 <div class="scc-modern-blue" id="<?php echo $scc_id; ?>">
