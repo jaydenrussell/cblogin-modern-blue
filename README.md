@@ -133,6 +133,7 @@ safely skips avatar rendering.
 | 1.3.15 | **Fix:** login/logout redirects now actually redirect. CB 2.x whitelists the posted `return` to `live_site`- or `index.php`-prefixed URLs and silently discards bare root-relative aliases (e.g. `/cb-profile` → homepage). The layouts now run the target through CB's `cbSef()` (like native `mod_cblogin`) so the encoded value is absolute and passes the whitelist |
 | 1.3.16 | **Fix:** CSS/JS links are now root-absolute (`JUri::root(true)`). Previously relative `templates/...` resolved against the current page path — fine on the homepage, but 404 on deeper routes (e.g. `/cb-profile/jaydenrussell`), leaving the module unstyled ("default look") on non-homepage pages |
 | 1.3.17 | **Fix:** CSS/JS root-absolute URLs now `rtrim()` the base path before joining, guaranteeing the leading slash even when `JUri::root(true)` returns an empty string on some Joomla 3 builds (defensive follow-up to 1.3.16) |
+| 1.3.18 | **Housekeeping:** `modernsoftblue.js` header comment reworded (removed the word "password" — it was flagged only as a scanner heuristic, no sensitive data) and the stale `@version 1.3.11` synced to the current release |
 
 ## Tests
 

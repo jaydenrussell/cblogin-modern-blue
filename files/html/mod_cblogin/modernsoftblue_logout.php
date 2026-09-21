@@ -1,6 +1,6 @@
 <?php
 /**
- * CB Login — Modern Soft Blue layout override (logged-in / logout state) v1.3.17
+ * CB Login — Modern Soft Blue layout override (logged-in / logout state) v1.3.18
  * ---------------------------------------------------------------------------
  * Shows: avatar in header, "Welcome, [name]" header as hyperlink to profile,
  * last login timestamp, + logout button.
@@ -9,7 +9,7 @@
  * getField). This override only runs inside the CB Login module, so CB's full
  * API + fieldtype renderer are always available — no direct DB query needed.
  *
- * @version 1.3.17
+ * @version 1.3.18
  */
 defined('_JEXEC') or die;
 
